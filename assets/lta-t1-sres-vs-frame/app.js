@@ -1,4 +1,4 @@
-const DATA_PATH = "lta1-t1-sres-assets/data/sres_frame_sres.csv";
+const DATA_PATH = "assets/lta-t1-sres-vs-frame/data/sres_frame_sres.csv";
 
 const DETAIL_FIELDS = [
   ["frame", "Frame"],
