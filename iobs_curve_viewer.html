@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Iobs Curve Viewer</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      --bg: #f7f4ee;
+      --card: #fffdf9;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --border: #d6d0c6;
+      --accent: #0f766e;
+      --accent2: #b45309;
+      --accent3: #7c3aed;
+      --accent4: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(135deg, #f7f4ee 0%, #efe7d8 100%);
+    }
+    .wrap { max-width: 1440px; margin: 0 auto; padding: 16px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.2fr 0.6fr 0.4fr 0.4fr 0.4fr;
+      gap: 10px;
+      align-items: end;
+    }
+    .toolbar label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+    .toolbar input, .toolbar button, .toolbar select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
+      font: inherit;
+    }
+    .toolbar button {
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .toolbar button.primary { background: var(--accent); color: white; border-color: #0f5f59; }
+    .toolbar button.secondary { background: #f8fafc; }
+    .meta { line-height: 1.5; }
+    .muted { color: var(--muted); }
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 12px; align-items: start; }
+    #reflectionSelect { min-height: 560px; padding: 0; }
+    #reflectionSelect option { padding: 6px 8px; }
+    #plot { min-height: 680px; }
+    .legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .pill { padding: 8px 10px; border-radius: 999px; border: 1px solid var(--border); background: #fff; font-size: 13px; }
+    .pill strong { display: inline-block; margin-right: 6px; }
+    @media (max-width: 1180px) {
+      .layout { grid-template-columns: 1fr; }
+      #reflectionSelect { min-height: 220px; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .legend { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .legend { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2 style="margin: 4px 0 10px;">Interactive Iobs Curves</h2>
+
+    <div class="card toolbar">
+      <div>
+        <label for="filterInput">Filter reflections</label>
+        <input id="filterInput" type="search" placeholder="Type HKL text, e.g. -23 -5 0" />
+      </div>
+      <div>
+        <label for="xAxisSelect">X-axis</label>
+        <select id="xAxisSelect">
+          <option value="frame">Frame</option>
+          <option value="excitation">Excitation</option>
+        </select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button id="prevBtn" class="secondary">Prev</button>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button id="nextBtn" class="secondary">Next</button>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button id="loadBtn" class="primary">Plot selected</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="card">
+        <div class="muted" style="font-size: 13px; margin-bottom: 8px;">Common reflections across all four files</div>
+        <select id="reflectionSelect" size="24"></select>
+      </div>
+
+      <div>
+        <div class="card meta" id="meta"></div>
+        <div class="card" id="plot"></div>
+        <div class="legend card" id="legend"></div>
+      </div>
+    </div>
+
+    <p class="muted">The viewer keeps only reflections that appear in all four rprofall files and have at least 3 points per file.</p>
+  </div>
+
+  <script>
+    const DATA_PATH = "assets/iobs-curve-viewer/iobs_curves.json";
+    let DATA = { min_points: 0, files: [], total_items: 0, items: [] };
+    const COLORS = ['#0f766e', '#b45309', '#7c3aed', '#b91c1c'];
+    const state = { filtered: [], index: 0, xMode: 'frame' };
+
+    const filterInput = document.getElementById('filterInput');
+    const select = document.getElementById('reflectionSelect');
+    const xAxisSelect = document.getElementById('xAxisSelect');
+
+    function currentItem() {
+      if (state.filtered.length === 0) return null;
+      return DATA.items[state.filtered[state.index]];
+    }
+
+    function axisKey() {
+      return state.xMode === 'excitation' ? 'excitation' : 'frames';
+    }
+
+    function axisLabel() {
+      return state.xMode === 'excitation' ? 'Excitation' : 'Frame';
+    }
+
+    function axisHoverFormat() {
+      return state.xMode === 'excitation' ? '%{x:.6g}' : '%{x}';
+    }
+
+    function formatNum(value) {
+      if (!Number.isFinite(value)) return String(value);
+      return value.toFixed(6);
+    }
+
+    function buildFilteredList() {
+      const query = filterInput.value.trim().toLowerCase();
+      state.filtered = DATA.items
+        .map((_, idx) => idx)
+        .filter((idx) => !query || DATA.items[idx].label.toLowerCase().includes(query));
+
+      select.innerHTML = '';
+      for (const idx of state.filtered) {
+        const item = DATA.items[idx];
+        const option = document.createElement('option');
+        const counts = item.files.map((file) => file.n_points).join('/');
+        option.value = String(idx);
+        option.textContent = `${item.label} | n=${counts}`;
+        select.appendChild(option);
+      }
+
+      if (state.filtered.length === 0) {
+        const option = document.createElement('option');
+        option.textContent = 'No reflections match the filter';
+        option.disabled = true;
+        select.appendChild(option);
+        state.index = 0;
+        return;
+      }
+
+      state.index = 0;
+      select.value = String(state.filtered[0]);
+    }
+
+    function updateMeta() {
+      const item = currentItem();
+      if (!item) {
+        document.getElementById('meta').innerHTML = '<strong>No reflection selected.</strong>';
+        document.getElementById('legend').innerHTML = '';
+        return;
+      }
+
+      document.getElementById('meta').innerHTML = [
+        `<strong>Reflection:</strong> ${item.label}`,
+        `<strong>Selected among:</strong> ${DATA.total_items} common reflections`,
+        `<strong>Files:</strong> ${DATA.files.join(', ')}`,
+        `<strong>Plot:</strong> Iobs vs ${axisLabel().toLowerCase()} for each file`,
+      ].join('<br>');
+
+      const legend = document.getElementById('legend');
+      legend.innerHTML = '';
+      item.files.forEach((file, idx) => {
+        const pill = document.createElement('div');
+        pill.className = 'pill';
+        pill.innerHTML = `<strong style="color:${COLORS[idx % COLORS.length]}">${file.name}</strong>block ${file.block_id} | n=${file.n_points} | frames ${file.frame_min}-${file.frame_max} | exc ${formatNum(file.excitation_min)}-${formatNum(file.excitation_max)}`;
+        legend.appendChild(pill);
+      });
+    }
+
+    function drawPlot() {
+      const item = currentItem();
+      if (!item) {
+        Plotly.purge('plot');
+        return;
+      }
+
+      const xKey = axisKey();
+      const xLabel = axisLabel();
+      const xHover = axisHoverFormat();
+
+      const traces = item.files.map((file, idx) => ({
+        x: file[xKey],
+        y: file.iobs,
+        type: 'scatter',
+        mode: 'lines+markers',
+        name: file.name,
+        line: { width: 2.5, color: COLORS[idx % COLORS.length] },
+        marker: { size: 5 },
+        hovertemplate: `${xLabel} ${xHover}<br>Iobs %{y:.6g}<extra>` + file.name + '</extra>',
+      }));
+
+      const layout = {
+        title: `${item.label} | Iobs curves from four rprofall files`,
+        xaxis: { title: xLabel, gridcolor: '#ece7df' },
+        yaxis: { title: 'Iobs', gridcolor: '#ece7df' },
+        paper_bgcolor: '#fff',
+        plot_bgcolor: '#fff',
+        margin: { l: 68, r: 20, t: 60, b: 60 },
+        legend: { orientation: 'h', y: -0.18 },
+      };
+
+      Plotly.newPlot('plot', traces, layout, { responsive: true, displaylogo: false });
+    }
+
+    function render() {
+      if (state.filtered.length === 0) {
+        updateMeta();
+        drawPlot();
+        return;
+      }
+      const idx = Number(select.value);
+      if (Number.isFinite(idx) && idx >= 0 && idx < DATA.items.length) {
+        const filteredPos = state.filtered.indexOf(idx);
+        if (filteredPos >= 0) {
+          state.index = filteredPos;
+        }
+      }
+      select.value = String(state.filtered[state.index]);
+      updateMeta();
+      drawPlot();
+    }
+
+    function step(delta) {
+      if (state.filtered.length === 0) return;
+      state.index = (state.index + delta + state.filtered.length) % state.filtered.length;
+      select.value = String(state.filtered[state.index]);
+      updateMeta();
+      drawPlot();
+    }
+
+    filterInput.addEventListener('input', () => {
+      buildFilteredList();
+      render();
+    });
+    xAxisSelect.addEventListener('change', () => {
+      state.xMode = xAxisSelect.value;
+      render();
+    });
+    select.addEventListener('change', render);
+    document.getElementById('loadBtn').addEventListener('click', render);
+    document.getElementById('prevBtn').addEventListener('click', () => step(-1));
+    document.getElementById('nextBtn').addEventListener('click', () => step(1));
+
+    async function initialize() {
+      const meta = document.getElementById('meta');
+      meta.textContent = 'Loading Iobs curve data...';
+
+      try {
+        const response = await fetch(DATA_PATH);
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
+        }
+        DATA = await response.json();
+        buildFilteredList();
+        render();
+      } catch (error) {
+        console.error(error);
+        meta.textContent = `Could not load ${DATA_PATH}: ${error.message}`;
+      }
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
