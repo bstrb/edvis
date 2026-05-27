@@ -285,8 +285,16 @@
         position: static;
       }
 
+      .plot-panel {
+        order: -1;
+        position: sticky;
+        top: max(10px, env(safe-area-inset-top));
+        z-index: 10;
+      }
+
       .svg-wrap {
-        min-height: 460px;
+        min-height: 0;
+        height: min(52vh, 520px);
       }
     }
 
@@ -299,12 +307,31 @@
         padding-bottom: max(20px, env(safe-area-inset-bottom));
       }
 
+      .header {
+        margin-bottom: 12px;
+      }
+
       h1 {
-        font-size: clamp(1.8rem, 7vw, 2.5rem);
+        font-size: clamp(1.65rem, 6.5vw, 2.2rem);
       }
 
       .subtitle {
-        font-size: 0.96rem;
+        display: none;
+      }
+
+      .layout {
+        gap: 12px;
+      }
+
+      .plot-panel {
+        padding: 8px;
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(54, 37, 15, 0.14);
+      }
+
+      .controls {
+        padding: 14px;
+        border-radius: 14px;
       }
 
       .row {
@@ -339,11 +366,22 @@
 
       .plot-topbar {
         align-items: flex-start;
+        margin-bottom: 6px;
+      }
+
+      .plot-title {
+        font-size: 1rem;
+      }
+
+      .status,
+      .legend,
+      .footer-note {
+        display: none;
       }
 
       .svg-wrap {
-        min-height: 320px;
-        height: 45vh;
+        border-radius: 10px;
+        height: min(42vh, 330px);
       }
     }
   </style>
