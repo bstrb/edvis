@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Electron Diffraction Rocking Curves</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Electron Diffraction Rocking Curves (iPhone)</title>
   <style>
     :root {
       --bg: #f5f1e8;
@@ -19,22 +19,29 @@
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
       margin: 0;
       font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
       background:
         radial-gradient(circle at top left, rgba(161, 77, 42, 0.12), transparent 30%),
         radial-gradient(circle at bottom right, rgba(32, 106, 93, 0.14), transparent 28%),
         linear-gradient(180deg, #f7f3eb 0%, var(--bg) 100%);
       color: var(--text);
+      -webkit-text-size-adjust: 100%;
     }
 
     .page {
       max-width: 1240px;
       margin: 0 auto;
       padding: 24px;
+      padding-left: max(24px, env(safe-area-inset-left));
+      padding-right: max(24px, env(safe-area-inset-right));
+      padding-top: max(24px, env(safe-area-inset-top));
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
     }
 
     .header {
@@ -139,6 +146,13 @@
       background: #fffdf9;
       color: var(--text);
       font: inherit;
+      font-size: 1rem;
+    }
+
+    button,
+    input,
+    select {
+      touch-action: manipulation;
     }
 
     .toggle-button {
@@ -183,6 +197,11 @@
       gap: 10px;
       font-size: 0.95rem;
       color: var(--text);
+    }
+
+    .checkbox input {
+      width: 18px;
+      height: 18px;
     }
 
     .plot-topbar {
@@ -266,8 +285,103 @@
         position: static;
       }
 
+      .plot-panel {
+        order: -1;
+        position: sticky;
+        top: max(10px, env(safe-area-inset-top));
+        z-index: 10;
+      }
+
       .svg-wrap {
-        min-height: 460px;
+        min-height: 0;
+        height: min(52vh, 520px);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 16px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-top: max(16px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+      }
+
+      .header {
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-size: clamp(1.65rem, 6.5vw, 2.2rem);
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .layout {
+        gap: 12px;
+      }
+
+      .plot-panel {
+        padding: 8px;
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(54, 37, 15, 0.14);
+      }
+
+      .controls {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .value-box {
+        text-align: left;
+        min-width: 0;
+      }
+
+      input[type="range"] {
+        height: 34px;
+      }
+
+      .toggle-button,
+      input[type="number"],
+      select,
+      input[type="text"] {
+        min-height: 44px;
+      }
+
+      .checkboxes {
+        gap: 12px;
+      }
+
+      .checkbox input {
+        width: 20px;
+        height: 20px;
+      }
+
+      .plot-topbar {
+        align-items: flex-start;
+        margin-bottom: 6px;
+      }
+
+      .plot-title {
+        font-size: 1rem;
+      }
+
+      .status,
+      .legend,
+      .footer-note {
+        display: none;
+      }
+
+      .svg-wrap {
+        border-radius: 10px;
+        height: min(42vh, 330px);
       }
     }
   </style>
@@ -398,6 +512,7 @@
           nm, and <code>ξ</code> is converted to Å only when forming <code>w = ξs</code>. -->
           <!-- The <code>s</code> slider sets the symmetric plotted half-range <code>|s|</code>, and the
           <code>ξ</code> slider changes the extinction distance. -->
+          <code>ξ</code> slider changes the extinction distance.
           Increasing crystal thickness
           <code>t</code> produces more closely spaced thickness fringes and narrows the central
           feature around the Bragg condition.
