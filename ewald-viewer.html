@@ -378,15 +378,15 @@
         <div class="grid-3">
           <div>
             <label for="a">a / Å</label>
-            <input id="a" type="number" step="0.1" min="0.001" />
+            <input id="a" type="number" step="1" min="5" />
           </div>
           <div>
             <label for="b">b / Å</label>
-            <input id="b" type="number" step="0.1" min="0.001" />
+            <input id="b" type="number" step="1" min="5" />
           </div>
           <div>
             <label for="c">c / Å</label>
-            <input id="c" type="number" step="0.1" min="0.001" />
+            <input id="c" type="number" step="1" min="5" />
           </div>
         </div>
         <div style="height: 9px"></div>
@@ -411,19 +411,19 @@
         <div class="grid-2">
           <div>
             <label for="lambda">lambda / Å</label>
-            <input id="lambda" type="number" step="0.0001" min="0.000001" />
+            <input id="lambda" type="number" step="0.001" min="0.001" />
           </div>
           <div>
             <label for="sgCutoff">|s<sub>g</sub>| cutoff / Å^-1</label>
-            <input id="sgCutoff" type="number" step="0.001" min="0.0000001" />
+            <input id="sgCutoff" type="number" step="0.001" min="0.001" />
           </div>
           <div>
             <label for="dMin">d_min / Å</label>
-            <input id="dMin" type="number" step="0.1" min="0.000001" />
+            <input id="dMin" type="number" step="0.1" min="0.1" />
           </div>
           <div>
             <label for="dMax">d_max / Å</label>
-            <input id="dMax" type="number" step="0.1" min="0.000001" />
+            <input id="dMax" type="number" step="0.1" min="0.2" />
           </div>
           <div>
             <label for="hklLimit">HKL safety cap</label>
@@ -431,7 +431,7 @@
           </div>
           <div>
             <label for="markerSize">Excited marker size</label>
-            <input id="markerSize" type="number" step="1" min="2" max="18" />
+            <input id="markerSize" type="number" step="1" min="1" max="10" />
           </div>
         </div>
         <p class="fine-print">
@@ -604,7 +604,7 @@
       alpha: 90.0,
       beta: 90.0,
       gamma: 90.0,
-      lambda: 0.01968,
+      lambda: 0.02,
       dMin: 0.4,
       dMax: 20.0,
       sgCutoff: 0.002,
@@ -623,7 +623,7 @@
       showLabels: false
     });
 
-    const MAX_RAW_HKLS = 350000;
+    const MAX_RAW_HKLS = 5000000;
     const DETECTOR_DISTANCE = 1.0;
     const EPS = 1e-12;
 
