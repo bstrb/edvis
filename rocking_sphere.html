@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Surface-Pivot Rocking Sphere</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --panel: #fffdf8;
+      --panel-strong: #f2e6d2;
+      --border: #cdbd9f;
+      --text: #2c2419;
+      --muted: #665948;
+      --accent: #a14d2a;
+      --accent-2: #206a5d;
+      --trace-center: #d97706;
+      --trace-marker: #b91c1c;
+      --trace-x: #15803d;
+      --trace-z: #7c3aed;
+      --pivot: #0f766e;
+      --grid: #d9cfbf;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      background:
+        radial-gradient(circle at top left, rgba(161, 77, 42, 0.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(32, 106, 93, 0.14), transparent 28%),
+        linear-gradient(180deg, #f7f3eb 0%, var(--bg) 100%);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .page {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 24px;
+      padding-left: max(24px, env(safe-area-inset-left));
+      padding-right: max(24px, env(safe-area-inset-right));
+      padding-top: max(24px, env(safe-area-inset-top));
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+
+    .header {
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-size: 0.78rem;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.3rem);
+      line-height: 0.96;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      max-width: 860px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 350px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(54, 37, 15, 0.08);
+    }
+
+    .controls {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .plot-panel {
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .note {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    .control-group {
+      margin-bottom: 14px;
+    }
+
+    .control-group label,
+    .control-inline-title {
+      display: block;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .range-wrap {
+      display: grid;
+      gap: 6px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    select,
+    button {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fffdf9;
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .button-row .wide {
+      grid-column: 1 / -1;
+    }
+
+    .toggle-button {
+      background: var(--panel-strong);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .toggle-button:hover {
+      background: #efe0c9;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .value-box {
+      min-width: 74px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .derived-readout {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .checkboxes {
+      display: grid;
+      gap: 8px;
+    }
+
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .checkbox input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .plot-topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .plot-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .status {
+      min-height: 1.3em;
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      min-height: 590px;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.76), rgba(245, 241, 232, 0.92)),
+        repeating-linear-gradient(
+          135deg,
+          rgba(161, 77, 42, 0.04),
+          rgba(161, 77, 42, 0.04) 12px,
+          rgba(32, 106, 93, 0.03) 12px,
+          rgba(32, 106, 93, 0.03) 24px
+        );
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    .gesture-hint {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: rgba(255, 253, 249, 0.9);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.86rem;
+      pointer-events: none;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-top: 12px;
+      font-size: 0.93rem;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 24px;
+      height: 0;
+      border-top-width: 3px;
+      border-top-style: solid;
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .plot-panel {
+        order: -1;
+        position: sticky;
+        top: max(10px, env(safe-area-inset-top));
+        z-index: 10;
+      }
+
+      .canvas-wrap {
+        min-height: 0;
+        height: min(54vh, 560px);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 16px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-top: max(16px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+      }
+
+      .header {
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-size: clamp(1.65rem, 6.5vw, 2.2rem);
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .layout {
+        gap: 12px;
+      }
+
+      .plot-panel {
+        padding: 8px;
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(54, 37, 15, 0.14);
+      }
+
+      .controls {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .value-box {
+        text-align: left;
+        min-width: 0;
+      }
+
+      input[type="range"] {
+        height: 34px;
+      }
+
+      select,
+      button {
+        min-height: 44px;
+      }
+
+      .checkboxes {
+        gap: 12px;
+      }
+
+      .checkbox input {
+        width: 20px;
+        height: 20px;
+      }
+
+      .plot-topbar {
+        align-items: flex-start;
+        margin-bottom: 6px;
+      }
+
+      .plot-title {
+        font-size: 1rem;
+      }
+
+      .legend,
+      .footer-note,
+      .gesture-hint {
+        display: none;
+      }
+
+      .canvas-wrap {
+        border-radius: 10px;
+        height: min(46vh, 360px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="eyebrow">Interactive HTML App</div>
+      <h1>Surface-Pivot Rocking Sphere</h1>
+      <div class="subtitle">
+        The fixed point in space is the attachment point on the sphere surface. The rod is an internal radius from that surface point to the sphere center, and its rocking directions fill a cone whose apex is on the surface and whose open end points inward. Because the center moves, the sphere itself sweeps a nontrivial path rather than simply rotating in place.
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="panel controls">
+        <div class="note">
+          <strong>Geometry.</strong>
+          The teal point is the fixed attachment point in space. The blue rod runs from that point to the sphere center, so its length is the sphere radius. Rocking changes both the <em>position</em> and the <em>orientation</em> of the sphere.
+        </div>
+
+        <div class="control-group">
+          <label for="motionMode">Motion mode</label>
+          <select id="motionMode">
+            <option value="rock">Back-and-forth rocking</option>
+            <option value="sweep">Full cone sweep</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="coneAngle">Cone half-angle θ (degrees)</label>
+          <div class="row">
+            <div class="range-wrap">
+              <input id="coneAngle" type="range" min="2" max="70" step="1" value="25">
+            </div>
+            <div id="coneAngleValue" class="value-box">25°</div>
+          </div>
+          <div id="coneDerived" class="derived-readout">Center-trace radius = 1.27; center height = 2.72</div>
+        </div>
+
+        <div class="control-group">
+          <label for="sphereRadius">Sphere radius R</label>
+          <div class="row">
+            <div class="range-wrap">
+              <input id="sphereRadius" type="range" min="1.0" max="10.0" step="0.1" value="3.0">
+            </div>
+            <div id="sphereRadiusValue" class="value-box">3.0</div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="rockSpan">Rock azimuth half-span (degrees)</label>
+          <div class="row">
+            <div class="range-wrap">
+              <input id="rockSpan" type="range" min="10" max="180" step="5" value="70">
+            </div>
+            <div id="rockSpanValue" class="value-box">70°</div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="speed">Speed</label>
+          <div class="row">
+            <div class="range-wrap">
+              <input id="speed" type="range" min="0.1" max="1.8" step="0.1" value="0.7">
+            </div>
+            <div id="speedValue" class="value-box">0.7×</div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-inline-title">Visible overlays</div>
+          <div class="checkboxes">
+            <label class="checkbox"><input id="showCone" type="checkbox" checked> Show inward cone</label>
+            <label class="checkbox"><input id="showCenterTrail" type="checkbox" checked> Show sphere-center trace</label>
+            <label class="checkbox"><input id="showMarkerTrail" type="checkbox" checked> Show painted-marker trace</label>
+            <label class="checkbox"><input id="showBodyTrails" type="checkbox" checked> Show body-axis traces</label>
+            <label class="checkbox"><input id="showSphereWake" type="checkbox" checked> Show sphere wake</label>
+            <label class="checkbox"><input id="showGhosts" type="checkbox" checked> Show reference poses</label>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="button-row">
+            <button id="playPause" class="primary" type="button">Pause</button>
+            <button id="clearTraces" class="toggle-button" type="button">Clear traces</button>
+            <button id="resetView" class="toggle-button wide" type="button">Reset view</button>
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>Reading the traces.</strong>
+          The orange path is the center of the sphere. The red, green, and purple paths belong to points fixed in the sphere body, so they show how the sphere orientation changes while the center translates. The faint ghost spheres show the swept body more directly.
+        </div>
+      </aside>
+
+      <section class="panel plot-panel">
+        <div class="plot-topbar">
+          <h2 class="plot-title">3D view of the rocking geometry</h2>
+          <div id="status" class="status">Drag to orbit. Pinch or use the mouse wheel to zoom.</div>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="vizCanvas"></canvas>
+          <div class="gesture-hint">One-finger drag: orbit · two-finger pinch: zoom</div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item"><span class="swatch" style="border-top-color: var(--accent)"></span>Rod and cone</div>
+          <div class="legend-item"><span class="swatch" style="border-top-color: var(--trace-center)"></span>Sphere-center trace</div>
+          <div class="legend-item"><span class="swatch" style="border-top-color: var(--trace-marker)"></span>Painted-marker trace</div>
+          <div class="legend-item"><span class="swatch" style="border-top-color: var(--trace-x)"></span>Body-axis x trace</div>
+          <div class="legend-item"><span class="swatch" style="border-top-color: var(--trace-z)"></span>Body-axis z trace</div>
+          <div class="legend-item"><span class="swatch" style="border-top-color: var(--pivot)"></span>Fixed surface attachment point</div>
+        </div>
+
+        <div class="footer-note">
+          This app is self-contained and runs directly in Safari on iPhone, without external libraries. The camera uses a lightweight canvas renderer so touch interaction stays responsive on mobile devices.
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      'use strict';
+
+      const TAU = Math.PI * 2;
+      const DEG = Math.PI / 180;
+
+      const canvas = document.getElementById('vizCanvas');
+      const ctx = canvas.getContext('2d');
+
+      const ui = {
+        motionMode: document.getElementById('motionMode'),
+        coneAngle: document.getElementById('coneAngle'),
+        sphereRadius: document.getElementById('sphereRadius'),
+        rockSpan: document.getElementById('rockSpan'),
+        speed: document.getElementById('speed'),
+        showCone: document.getElementById('showCone'),
+        showCenterTrail: document.getElementById('showCenterTrail'),
+        showMarkerTrail: document.getElementById('showMarkerTrail'),
+        showBodyTrails: document.getElementById('showBodyTrails'),
+        showSphereWake: document.getElementById('showSphereWake'),
+        showGhosts: document.getElementById('showGhosts'),
+        playPause: document.getElementById('playPause'),
+        clearTraces: document.getElementById('clearTraces'),
+        resetView: document.getElementById('resetView'),
+        coneAngleValue: document.getElementById('coneAngleValue'),
+        sphereRadiusValue: document.getElementById('sphereRadiusValue'),
+        rockSpanValue: document.getElementById('rockSpanValue'),
+        speedValue: document.getElementById('speedValue'),
+        coneDerived: document.getElementById('coneDerived'),
+        status: document.getElementById('status')
+      };
+
+      function cssVar(name, fallback) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        return value || fallback;
+      }
+
+      const colors = {
+        bgTop: '#fffdf9',
+        bgBottom: '#f2ebde',
+        grid: cssVar('--grid', '#d9cfbf'),
+        axis: cssVar('--muted', '#665948'),
+        accent: cssVar('--accent', '#a14d2a'),
+        accent2: cssVar('--accent-2', '#206a5d'),
+        centerTrail: cssVar('--trace-center', '#d97706'),
+        markerTrail: cssVar('--trace-marker', '#b91c1c'),
+        xTrail: cssVar('--trace-x', '#15803d'),
+        zTrail: cssVar('--trace-z', '#7c3aed'),
+        pivot: cssVar('--pivot', '#0f766e'),
+        text: cssVar('--text', '#2c2419')
+      };
+
+      function v(x=0, y=0, z=0){ return {x, y, z}; }
+      function add(a,b){ return {x:a.x+b.x, y:a.y+b.y, z:a.z+b.z}; }
+      function sub(a,b){ return {x:a.x-b.x, y:a.y-b.y, z:a.z-b.z}; }
+      function scale(a,s){ return {x:a.x*s, y:a.y*s, z:a.z*s}; }
+      function dot(a,b){ return a.x*b.x + a.y*b.y + a.z*b.z; }
+      function cross(a,b){ return {x:a.y*b.z-a.z*b.y, y:a.z*b.x-a.x*b.z, z:a.x*b.y-a.y*b.x}; }
+      function len(a){ return Math.hypot(a.x, a.y, a.z); }
+      function norm(a){ const l = len(a) || 1; return {x:a.x/l, y:a.y/l, z:a.z/l}; }
+      function lerp(a,b,t){ return a + (b-a)*t; }
+      function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+
+      function quatFromTo(a, b) {
+        const na = norm(a);
+        const nb = norm(b);
+        const c = dot(na, nb);
+        if (c < -0.999999) {
+          const axis = norm(Math.abs(na.x) < 0.8 ? cross(na, v(1,0,0)) : cross(na, v(0,1,0)));
+          return {w:0, x:axis.x, y:axis.y, z:axis.z};
+        }
+        const axis = cross(na, nb);
+        const s = Math.sqrt((1 + c) * 2);
+        const inv = 1 / s;
+        return normalizeQuat({w:s*0.5, x:axis.x*inv, y:axis.y*inv, z:axis.z*inv});
+      }
+      function normalizeQuat(q){
+        const l = Math.hypot(q.w, q.x, q.y, q.z) || 1;
+        return {w:q.w/l, x:q.x/l, y:q.y/l, z:q.z/l};
+      }
+      function rotateVecByQuat(p, q) {
+        const x = p.x, y = p.y, z = p.z;
+        const qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+        const ix =  qw * x + qy * z - qz * y;
+        const iy =  qw * y + qz * x - qx * z;
+        const iz =  qw * z + qx * y - qy * x;
+        const iw = -qx * x - qy * y - qz * z;
+        return {
+          x: ix * qw + iw * -qx + iy * -qz - iz * -qy,
+          y: iy * qw + iw * -qy + iz * -qx - ix * -qz,
+          z: iz * qw + iw * -qz + ix * -qy - iy * -qx
+        };
+      }
+
+      const state = {
+        width: 300,
+        height: 300,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        playing: true,
+        phase: 0,
+        lastTime: performance.now(),
+        azimuth: 0.82,
+        elevation: 0.34,
+        distance: 13.0,
+        traces: {
+          center: [],
+          marker: [],
+          xTip: [],
+          zTip: []
+        },
+        wake: [],
+        ghostPoses: [],
+        frameCounter: 0,
+        lastWakeTime: 0,
+        touchMode: null,
+        activeTouches: new Map(),
+        pinchStartDist: 0,
+        pinchStartCameraDist: 13.0,
+        lastSingleTouch: null
+      };
+
+      const maxTracePoints = 520;
+      const maxWakePoses = 18;
+      const maxGhostPoses = 14;
+
+      function currentSettings() {
+        return {
+          mode: ui.motionMode.value,
+          thetaDeg: parseFloat(ui.coneAngle.value),
+          theta: parseFloat(ui.coneAngle.value) * DEG,
+          radius: parseFloat(ui.sphereRadius.value),
+          spanDeg: parseFloat(ui.rockSpan.value),
+          span: parseFloat(ui.rockSpan.value) * DEG,
+          speed: parseFloat(ui.speed.value),
+          showCone: ui.showCone.checked,
+          showCenterTrail: ui.showCenterTrail.checked,
+          showMarkerTrail: ui.showMarkerTrail.checked,
+          showBodyTrails: ui.showBodyTrails.checked,
+          showSphereWake: ui.showSphereWake.checked,
+          showGhosts: ui.showGhosts.checked
+        };
+      }
+
+      function updateReadouts() {
+        const s = currentSettings();
+        ui.coneAngleValue.textContent = s.thetaDeg.toFixed(0) + '°';
+        ui.sphereRadiusValue.textContent = s.radius.toFixed(1);
+        ui.rockSpanValue.textContent = s.spanDeg.toFixed(0) + '°';
+        ui.speedValue.textContent = s.speed.toFixed(1) + '×';
+        const radial = s.radius * Math.sin(s.theta);
+        const height = s.radius * Math.cos(s.theta);
+        ui.coneDerived.textContent = 'Center-trace radius = ' + radial.toFixed(2) + '; center height = ' + height.toFixed(2);
+        ui.rockSpan.disabled = s.mode === 'sweep';
+      }
+
+      function clearTraces() {
+        state.traces.center = [];
+        state.traces.marker = [];
+        state.traces.xTip = [];
+        state.traces.zTip = [];
+        state.wake = [];
+      }
+
+      function resetView() {
+        state.azimuth = 0.82;
+        state.elevation = 0.34;
+        state.distance = 13.0;
+      }
+
+      function direction(theta, phi) {
+        return norm(v(Math.sin(theta) * Math.cos(phi), Math.cos(theta), Math.sin(theta) * Math.sin(phi)));
+      }
+
+      function poseAt(phi) {
+        const s = currentSettings();
+        const pivot = v(0, 0, 0);
+        const d = direction(s.theta, phi);
+        const center = add(pivot, scale(d, s.radius));
+        const q = quatFromTo(v(0,1,0), d);
+        const markerLocal = norm(v(0.62, 0.54, 0.57));
+        const xLocal = v(1,0,0);
+        const zLocal = v(0,0,1);
+        const attachLocal = v(0,-1,0);
+        const marker = add(center, scale(rotateVecByQuat(markerLocal, q), s.radius));
+        const xTip = add(center, scale(rotateVecByQuat(xLocal, q), s.radius));
+        const zTip = add(center, scale(rotateVecByQuat(zLocal, q), s.radius));
+        const attachCheck = add(center, scale(rotateVecByQuat(attachLocal, q), s.radius));
+        return { pivot, center, q, marker, xTip, zTip, d, attachCheck, radius: s.radius };
+      }
+
+      function buildGhostPoses() {
+        const s = currentSettings();
+        state.ghostPoses = [];
+        if (!s.showGhosts) return;
+        if (s.mode === 'sweep') {
+          for (let i = 0; i < maxGhostPoses; i += 1) {
+            const phi = TAU * (i / maxGhostPoses);
+            state.ghostPoses.push(poseAt(phi));
+          }
+        } else {
+          const n = maxGhostPoses;
+          for (let i = 0; i < n; i += 1) {
+            const t = n === 1 ? 0 : i / (n - 1);
+            const phi = lerp(-s.span, s.span, t);
+            state.ghostPoses.push(poseAt(phi));
+          }
+        }
+      }
+
+      function cameraData() {
+        const target = v(0, 2.6, 0);
+        const pos = v(
+          state.distance * Math.cos(state.elevation) * Math.sin(state.azimuth),
+          state.distance * Math.sin(state.elevation),
+          state.distance * Math.cos(state.elevation) * Math.cos(state.azimuth)
+        );
+        const forward = norm(sub(target, pos));
+        const right = norm(cross(forward, v(0,1,0)));
+        const up = norm(cross(right, forward));
+        return { pos, target, forward, right, up, focal: 0.52 * state.height / Math.tan(28 * DEG) };
+      }
+
+      function project(point, cam) {
+        const rel = sub(point, cam.pos);
+        const cx = dot(rel, cam.right);
+        const cy = dot(rel, cam.up);
+        const cz = dot(rel, cam.forward);
+        if (cz <= 0.05) return null;
+        return {
+          x: state.width * 0.5 + cam.focal * (cx / cz),
+          y: state.height * 0.52 - cam.focal * (cy / cz),
+          z: cz
+        };
+      }
+
+      function projectRadius(center, radius, cam) {
+        const c = project(center, cam);
+        if (!c) return null;
+        const p = project(add(center, scale(cam.right, radius)), cam);
+        if (!p) return null;
+        return { center: c, radius: Math.abs(p.x - c.x) };
+      }
+
+      function drawPolyline3D(points, cam, strokeStyle, lineWidth, alpha, dash) {
+        const proj = [];
+        for (const p of points) {
+          const pp = project(p, cam);
+          if (pp) proj.push(pp);
+        }
+        if (proj.length < 2) return;
+        ctx.save();
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = lineWidth * state.dpr;
+        ctx.globalAlpha = alpha;
+        if (dash && dash.length) ctx.setLineDash(dash.map(x => x * state.dpr));
+        ctx.beginPath();
+        ctx.moveTo(proj[0].x, proj[0].y);
+        for (let i = 1; i < proj.length; i += 1) ctx.lineTo(proj[i].x, proj[i].y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function sphereLatitudeCurve(center, q, radius, lat, steps=72) {
+        const pts = [];
+        const y = Math.sin(lat) * radius;
+        const rr = Math.cos(lat) * radius;
+        for (let i = 0; i <= steps; i += 1) {
+          const a = TAU * (i / steps);
+          const local = v(rr * Math.cos(a), y, rr * Math.sin(a));
+          pts.push(add(center, rotateVecByQuat(local, q)));
+        }
+        return pts;
+      }
+
+      function sphereLongitudeCurve(center, q, radius, lon, steps=54) {
+        const pts = [];
+        for (let i = 0; i <= steps; i += 1) {
+          const t = -Math.PI * 0.5 + Math.PI * (i / steps);
+          const local = v(Math.cos(t) * radius * Math.cos(lon), Math.sin(t) * radius, Math.cos(t) * radius * Math.sin(lon));
+          pts.push(add(center, rotateVecByQuat(local, q)));
+        }
+        return pts;
+      }
+
+      function drawSphere(center, q, radius, cam, options={}) {
+        const pr = projectRadius(center, radius, cam);
+        if (!pr) return;
+        const fillAlpha = options.fillAlpha ?? 0.14;
+        const strokeAlpha = options.strokeAlpha ?? 0.5;
+        const gridAlpha = options.gridAlpha ?? 0.22;
+
+        ctx.save();
+        ctx.fillStyle = colors.accent;
+        ctx.globalAlpha = fillAlpha;
+        ctx.beginPath();
+        ctx.arc(pr.center.x, pr.center.y, Math.max(1, pr.radius), 0, TAU);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = colors.text;
+        ctx.globalAlpha = strokeAlpha;
+        ctx.lineWidth = 1.2 * state.dpr;
+        ctx.beginPath();
+        ctx.arc(pr.center.x, pr.center.y, Math.max(1, pr.radius), 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.strokeStyle = colors.text;
+        ctx.globalAlpha = gridAlpha;
+        ctx.lineWidth = 0.85 * state.dpr;
+        const lats = [-55, -25, 0, 25, 55].map(x => x * DEG);
+        const lons = [0, 45, 90, 135].map(x => x * DEG);
+        for (const lat of lats) {
+          const pts = sphereLatitudeCurve(center, q, radius, lat);
+          strokeProjectedPolyline(pts, cam);
+        }
+        for (const lon of lons) {
+          const pts = sphereLongitudeCurve(center, q, radius, lon);
+          strokeProjectedPolyline(pts, cam);
+        }
+        ctx.restore();
+      }
+
+      function strokeProjectedPolyline(points, cam) {
+        let started = false;
+        ctx.beginPath();
+        for (const p of points) {
+          const pp = project(p, cam);
+          if (!pp) {
+            started = false;
+            continue;
+          }
+          if (!started) {
+            ctx.moveTo(pp.x, pp.y);
+            started = true;
+          } else {
+            ctx.lineTo(pp.x, pp.y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      function drawPoint3D(point, cam, color, radiusPx, alpha=1) {
+        const p = project(point, cam);
+        if (!p) return;
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radiusPx * state.dpr, 0, TAU);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawLine3D(a, b, cam, color, width, alpha=1, dash=null) {
+        const pa = project(a, cam);
+        const pb = project(b, cam);
+        if (!pa || !pb) return;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width * state.dpr;
+        ctx.globalAlpha = alpha;
+        if (dash && dash.length) ctx.setLineDash(dash.map(x => x * state.dpr));
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawCone(cam, radius, theta) {
+        const h = radius * Math.cos(theta);
+        const br = radius * Math.sin(theta);
+        const apex = v(0,0,0);
+        const steps = 40;
+        const rimPts = [];
+        for (let i = 0; i <= steps; i += 1) {
+          const a = TAU * (i / steps);
+          rimPts.push(v(br * Math.cos(a), h, br * Math.sin(a)));
+        }
+
+        ctx.save();
+        ctx.fillStyle = colors.accent;
+        ctx.globalAlpha = 0.07;
+        for (let i = 0; i < steps; i += 1) {
+          const pa = project(apex, cam);
+          const pb = project(rimPts[i], cam);
+          const pc = project(rimPts[i+1], cam);
+          if (!pa || !pb || !pc) continue;
+          ctx.beginPath();
+          ctx.moveTo(pa.x, pa.y);
+          ctx.lineTo(pb.x, pb.y);
+          ctx.lineTo(pc.x, pc.y);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+
+        drawPolyline3D(rimPts, cam, colors.accent, 1.2, 0.55);
+        for (let i = 0; i < 8; i += 1) {
+          const a = TAU * (i / 8);
+          const p = v(br * Math.cos(a), h, br * Math.sin(a));
+          drawLine3D(apex, p, cam, colors.accent, 1.0, 0.28);
+        }
+      }
+
+      function drawTrace(points, cam, color, width, alpha) {
+        if (points.length < 2) return;
+        drawPolyline3D(points, cam, color, width, alpha);
+      }
+
+      function updateTraces(pose, dt) {
+        state.frameCounter += 1;
+        if (state.frameCounter % 2 !== 0) return;
+        pushBounded(state.traces.center, pose.center, maxTracePoints);
+        pushBounded(state.traces.marker, pose.marker, maxTracePoints);
+        pushBounded(state.traces.xTip, pose.xTip, maxTracePoints);
+        pushBounded(state.traces.zTip, pose.zTip, maxTracePoints);
+
+        state.lastWakeTime += dt;
+        if (state.lastWakeTime > 0.09) {
+          state.lastWakeTime = 0;
+          pushBounded(state.wake, { center: pose.center, q: pose.q, radius: pose.radius }, maxWakePoses);
+        }
+      }
+
+      function pushBounded(arr, item, maxLen) {
+        arr.push(item);
+        if (arr.length > maxLen) arr.shift();
+      }
+
+      function currentPhi() {
+        const s = currentSettings();
+        if (s.mode === 'sweep') return state.phase;
+        return s.span * Math.sin(state.phase);
+      }
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        state.width = Math.max(1, Math.floor(rect.width));
+        state.height = Math.max(1, Math.floor(rect.height));
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(state.width * state.dpr);
+        canvas.height = Math.floor(state.height * state.dpr);
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+      }
+
+      function drawBackground() {
+        const g = ctx.createLinearGradient(0, 0, 0, state.height);
+        g.addColorStop(0, colors.bgTop);
+        g.addColorStop(1, colors.bgBottom);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, state.width, state.height);
+
+        ctx.save();
+        ctx.strokeStyle = colors.grid;
+        ctx.globalAlpha = 0.35;
+        ctx.lineWidth = 1;
+        const gap = state.width < 500 ? 32 : 42;
+        for (let x = -gap; x < state.width + gap; x += gap) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x + state.height, state.height);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawAxes(cam) {
+        drawLine3D(v(0,-1.5,0), v(0,4.7,0), cam, colors.axis, 1, 0.25, [6,5]);
+      }
+
+      function renderScene(pose) {
+        drawBackground();
+        const cam = cameraData();
+        const s = currentSettings();
+
+        drawAxes(cam);
+
+        if (s.showSphereWake) {
+          const n = state.wake.length;
+          for (let i = 0; i < n; i += 1) {
+            const w = state.wake[i];
+            const f = (i + 1) / Math.max(1, n);
+            drawSphere(w.center, w.q, w.radius, cam, { fillAlpha: 0.028 + 0.045 * f, strokeAlpha: 0.05 + 0.07 * f, gridAlpha: 0.03 + 0.05 * f });
+          }
+        }
+
+        if (s.showGhosts) {
+          const n = state.ghostPoses.length;
+          for (let i = 0; i < n; i += 1) {
+            const g = state.ghostPoses[i];
+            const f = 0.05 + 0.05 * (i / Math.max(1, n - 1));
+            drawSphere(g.center, g.q, g.radius, cam, { fillAlpha: 0.018, strokeAlpha: f, gridAlpha: 0.045 });
+            drawLine3D(g.pivot, g.center, cam, colors.accent, 1.0, 0.12);
+          }
+        }
+
+        if (s.showCone) {
+          drawCone(cam, s.radius, s.theta);
+        }
+
+        if (s.showCenterTrail) drawTrace(state.traces.center, cam, colors.centerTrail, 2.2, 0.95);
+        if (s.showMarkerTrail) drawTrace(state.traces.marker, cam, colors.markerTrail, 2.0, 0.95);
+        if (s.showBodyTrails) {
+          drawTrace(state.traces.xTip, cam, colors.xTrail, 2.0, 0.95);
+          drawTrace(state.traces.zTip, cam, colors.zTrail, 2.0, 0.95);
+        }
+
+        drawSphere(pose.center, pose.q, pose.radius, cam, { fillAlpha: 0.16, strokeAlpha: 0.62, gridAlpha: 0.24 });
+
+        drawLine3D(pose.pivot, pose.center, cam, colors.accent, 3.0, 0.9);
+        drawLine3D(pose.center, pose.xTip, cam, colors.xTrail, 2.0, s.showBodyTrails ? 0.9 : 0.0);
+        drawLine3D(pose.center, pose.zTip, cam, colors.zTrail, 2.0, s.showBodyTrails ? 0.9 : 0.0);
+        drawLine3D(pose.center, pose.marker, cam, colors.markerTrail, 1.2, 0.45);
+
+        drawPoint3D(pose.pivot, cam, colors.pivot, 5.2, 1);
+        drawPoint3D(pose.center, cam, colors.centerTrail, 4.0, 0.95);
+        drawPoint3D(pose.marker, cam, colors.markerTrail, 4.4, 1);
+        if (s.showBodyTrails) {
+          drawPoint3D(pose.xTip, cam, colors.xTrail, 4.3, 1);
+          drawPoint3D(pose.zTip, cam, colors.zTrail, 4.3, 1);
+        }
+
+        const pa = project(pose.attachCheck, cam);
+        if (pa) {
+          ctx.save();
+          ctx.strokeStyle = colors.pivot;
+          ctx.globalAlpha = 0.5;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(pa.x, pa.y, 8, 0, TAU);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      function animate(now) {
+        const dt = Math.min(0.05, (now - state.lastTime) / 1000);
+        state.lastTime = now;
+        if (state.playing && document.visibilityState === 'visible') {
+          state.phase += dt * currentSettings().speed * 1.7;
+          const pose = poseAt(currentPhi());
+          updateTraces(pose, dt);
+          renderScene(pose);
+        } else {
+          renderScene(poseAt(currentPhi()));
+        }
+        requestAnimationFrame(animate);
+      }
+
+      function bindUI() {
+        const refreshAll = () => {
+          updateReadouts();
+          buildGhostPoses();
+          clearTraces();
+          ui.status.textContent = 'Attachment point fixed on the surface. Center and body traces updated.';
+          renderScene(poseAt(currentPhi()));
+        };
+
+        [ui.motionMode, ui.coneAngle, ui.sphereRadius, ui.rockSpan].forEach(el => el.addEventListener('input', refreshAll));
+        ui.speed.addEventListener('input', updateReadouts);
+        [ui.showCone, ui.showCenterTrail, ui.showMarkerTrail, ui.showBodyTrails, ui.showSphereWake, ui.showGhosts].forEach(el => el.addEventListener('change', () => {
+          if (el === ui.showGhosts) buildGhostPoses();
+          renderScene(poseAt(currentPhi()));
+        }));
+
+        ui.playPause.addEventListener('click', () => {
+          state.playing = !state.playing;
+          ui.playPause.textContent = state.playing ? 'Pause' : 'Play';
+          ui.status.textContent = state.playing ? 'Animation running.' : 'Animation paused.';
+        });
+        ui.clearTraces.addEventListener('click', () => {
+          clearTraces();
+          ui.status.textContent = 'All traces cleared.';
+          renderScene(poseAt(currentPhi()));
+        });
+        ui.resetView.addEventListener('click', () => {
+          resetView();
+          ui.status.textContent = 'Camera reset.';
+          renderScene(poseAt(currentPhi()));
+        });
+      }
+
+      function canvasPoint(touch) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+      }
+
+      function touchDistance(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      canvas.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'mouse') {
+          canvas.setPointerCapture(e.pointerId);
+          state.touchMode = 'mouse';
+          state.lastSingleTouch = { x: e.clientX, y: e.clientY };
+        }
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (state.touchMode !== 'mouse' || !state.lastSingleTouch) return;
+        if ((e.buttons & 1) !== 1) return;
+        const dx = e.clientX - state.lastSingleTouch.x;
+        const dy = e.clientY - state.lastSingleTouch.y;
+        state.lastSingleTouch = { x: e.clientX, y: e.clientY };
+        state.azimuth -= dx * 0.008;
+        state.elevation = clamp(state.elevation + dy * 0.006, -0.15, 1.2);
+      });
+
+      canvas.addEventListener('pointerup', () => {
+        state.touchMode = null;
+        state.lastSingleTouch = null;
+      });
+      canvas.addEventListener('pointercancel', () => {
+        state.touchMode = null;
+        state.lastSingleTouch = null;
+      });
+
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        state.distance = clamp(state.distance * Math.exp(e.deltaY * 0.001), 7.5, 20);
+      }, { passive: false });
+
+      canvas.addEventListener('touchstart', (e) => {
+        for (const t of e.changedTouches) state.activeTouches.set(t.identifier, canvasPoint(t));
+        if (state.activeTouches.size === 1) {
+          state.touchMode = 'orbit';
+          state.lastSingleTouch = [...state.activeTouches.values()][0];
+        } else if (state.activeTouches.size >= 2) {
+          const vals = [...state.activeTouches.values()];
+          state.touchMode = 'pinch';
+          state.pinchStartDist = touchDistance(vals[0], vals[1]);
+          state.pinchStartCameraDist = state.distance;
+        }
+      }, { passive: true });
+
+      canvas.addEventListener('touchmove', (e) => {
+        for (const t of e.changedTouches) state.activeTouches.set(t.identifier, canvasPoint(t));
+        if (state.touchMode === 'orbit' && state.activeTouches.size === 1) {
+          const pt = [...state.activeTouches.values()][0];
+          if (state.lastSingleTouch) {
+            const dx = pt.x - state.lastSingleTouch.x;
+            const dy = pt.y - state.lastSingleTouch.y;
+            state.azimuth -= dx * 0.008;
+            state.elevation = clamp(state.elevation + dy * 0.006, -0.15, 1.2);
+          }
+          state.lastSingleTouch = pt;
+        } else if (state.activeTouches.size >= 2) {
+          const vals = [...state.activeTouches.values()];
+          const distNow = touchDistance(vals[0], vals[1]);
+          if (state.pinchStartDist > 0) {
+            state.distance = clamp(state.pinchStartCameraDist * (state.pinchStartDist / distNow), 7.5, 20);
+          }
+        }
+      }, { passive: true });
+
+      function endTouches(e) {
+        for (const t of e.changedTouches) state.activeTouches.delete(t.identifier);
+        if (state.activeTouches.size === 0) {
+          state.touchMode = null;
+          state.lastSingleTouch = null;
+        } else if (state.activeTouches.size === 1) {
+          state.touchMode = 'orbit';
+          state.lastSingleTouch = [...state.activeTouches.values()][0];
+        } else {
+          const vals = [...state.activeTouches.values()];
+          state.touchMode = 'pinch';
+          state.pinchStartDist = touchDistance(vals[0], vals[1]);
+          state.pinchStartCameraDist = state.distance;
+        }
+      }
+
+      canvas.addEventListener('touchend', endTouches, { passive: true });
+      canvas.addEventListener('touchcancel', endTouches, { passive: true });
+
+      const resizeObserver = new ResizeObserver(() => {
+        resizeCanvas();
+        renderScene(poseAt(currentPhi()));
+      });
+      resizeObserver.observe(canvas);
+      window.addEventListener('orientationchange', () => setTimeout(() => {
+        resizeCanvas();
+        renderScene(poseAt(currentPhi()));
+      }, 120));
+      document.addEventListener('visibilitychange', () => {
+        state.lastTime = performance.now();
+      });
+
+      updateReadouts();
+      resizeCanvas();
+      clearTraces();
+      buildGhostPoses();
+      bindUI();
+      renderScene(poseAt(0));
+      requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>
