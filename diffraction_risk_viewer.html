@@ -208,6 +208,10 @@
       gap: 8px;
     }
 
+    .number-grid + .number-grid {
+      margin-top: 8px;
+    }
+
     .number-grid label {
       margin-bottom: 0;
     }
@@ -480,7 +484,22 @@
     <div class="layout">
       <aside class="panel controls">
         <div class="note">
-          <div class="formula">S_risk(g) = E(g) * sum E(h)C(g,h)<br>E(g) = exp[-(s_g/s0)^2]</div>
+          <div class="formula">S_risk(g) = E(g) * R_env(g)<br>R_env(g) = sum E(h)C(g,h)<br>E(g) = exp[-(s_g/s0)^2]</div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-inline-title">Unit cell</div>
+          <div class="number-grid">
+            <label><span>a</span><input id="aInput" type="number" step="any" value="15.12"></label>
+            <label><span>b</span><input id="bInput" type="number" step="any" value="15.12"></label>
+            <label><span>c</span><input id="cInput" type="number" step="any" value="11.99"></label>
+          </div>
+          <div class="number-grid">
+            <label><span>alpha</span><input id="alphaInput" type="number" step="any" value="90"></label>
+            <label><span>beta</span><input id="betaInput" type="number" step="any" value="90"></label>
+            <label><span>gamma</span><input id="gammaInput" type="number" step="any" value="90"></label>
+          </div>
+          <div class="derived-readout" id="cellReadout">a,b,c in A; angles in degrees</div>
         </div>
 
         <div class="control-group">
@@ -506,6 +525,7 @@
           <div class="button-row">
             <button id="applyInputs" class="primary" type="button">Apply inputs</button>
             <button id="clearMark" class="toggle-button" type="button">Clear mark</button>
+            <button id="resetCell" class="toggle-button wide" type="button">Reset cell</button>
           </div>
         </div>
 
@@ -537,6 +557,17 @@
             </div>
             <div id="rCutValue" class="value-box">0.1500</div>
           </div>
+        </div>
+
+        <div class="control-group">
+          <label for="displayCutoffSlider">minimum visible spot intensity</label>
+          <div class="row">
+            <div class="range-wrap">
+              <input id="displayCutoffSlider" type="range" min="0.000" max="0.150" step="0.001" value="0.018">
+            </div>
+            <div id="displayCutoffValue" class="value-box">0.018</div>
+          </div>
+          <div class="derived-readout">Raise this to show fewer reflections.</div>
         </div>
 
         <div class="control-group">
@@ -581,7 +612,7 @@
         </div>
 
         <div class="footer-note">
-          Cell default: a = 15.12, b = 15.12, c = 11.99, alpha = beta = gamma = 90; lambda = 0.020 A; d_min = 0.5 A.
+          Defaults: a = 15.12, b = 15.12, c = 11.99, alpha = beta = gamma = 90; lambda = 0.020 A; d_min = 0.5 A.
         </div>
       </section>
     </div>
@@ -603,6 +634,7 @@
         maxIndex: 90,
         minDisplayIntensity: 0.018,
         riskPercentile: 99.0,
+        envContributionFloor: 1e-12,
         s0: 0.008,
         sigmaC: 0.060,
         rCut: 0.150,
@@ -613,6 +645,12 @@
       const ctx = canvas.getContext('2d');
 
       const ui = {
+        aInput: document.getElementById('aInput'),
+        bInput: document.getElementById('bInput'),
+        cInput: document.getElementById('cInput'),
+        alphaInput: document.getElementById('alphaInput'),
+        betaInput: document.getElementById('betaInput'),
+        gammaInput: document.getElementById('gammaInput'),
         uInput: document.getElementById('uInput'),
         vInput: document.getElementById('vInput'),
         wInput: document.getElementById('wInput'),
@@ -621,13 +659,17 @@
         lInput: document.getElementById('lInput'),
         applyInputs: document.getElementById('applyInputs'),
         clearMark: document.getElementById('clearMark'),
+        resetCell: document.getElementById('resetCell'),
         s0Slider: document.getElementById('s0Slider'),
         sigmaSlider: document.getElementById('sigmaSlider'),
         rCutSlider: document.getElementById('rCutSlider'),
+        displayCutoffSlider: document.getElementById('displayCutoffSlider'),
         s0Value: document.getElementById('s0Value'),
         sigmaValue: document.getElementById('sigmaValue'),
         rCutValue: document.getElementById('rCutValue'),
+        displayCutoffValue: document.getElementById('displayCutoffValue'),
         uvwNorm: document.getElementById('uvwNorm'),
+        cellReadout: document.getElementById('cellReadout'),
         showAllCandidates: document.getElementById('showAllCandidates'),
         showDirectBeam: document.getElementById('showDirectBeam'),
         showLabels: document.getElementById('showLabels'),
@@ -660,6 +702,7 @@
         width: 300,
         height: 300,
         dpr: Math.min(window.devicePixelRatio || 1, 2),
+        cell: defaults.cell.slice(),
         direct: null,
         reciprocal: null,
         fullReflections: [],
@@ -780,6 +823,40 @@
         return uvw;
       }
 
+      function readCell() {
+        const cell = [
+          Number(ui.aInput.value),
+          Number(ui.bInput.value),
+          Number(ui.cInput.value),
+          Number(ui.alphaInput.value),
+          Number(ui.betaInput.value),
+          Number(ui.gammaInput.value)
+        ];
+        if (!cell.every(Number.isFinite)) throw new Error('cell fields must be numeric');
+        if (cell[0] <= 0 || cell[1] <= 0 || cell[2] <= 0) throw new Error('cell lengths must be positive');
+        if (cell[3] <= 0 || cell[3] >= 180 || cell[4] <= 0 || cell[4] >= 180 || cell[5] <= 0 || cell[5] >= 180) {
+          throw new Error('cell angles must be between 0 and 180 degrees');
+        }
+        return cell;
+      }
+
+      function cellsMatch(a, b) {
+        if (!a || !b) return false;
+        for (let i = 0; i < a.length; i += 1) {
+          if (Math.abs(a[i] - b[i]) > 1e-10) return false;
+        }
+        return true;
+      }
+
+      function writeCellInputs(cell) {
+        ui.aInput.value = String(cell[0]);
+        ui.bInput.value = String(cell[1]);
+        ui.cInput.value = String(cell[2]);
+        ui.alphaInput.value = String(cell[3]);
+        ui.betaInput.value = String(cell[4]);
+        ui.gammaInput.value = String(cell[5]);
+      }
+
       function readMarkHkl() {
         const raw = [ui.hInput.value.trim(), ui.kInput.value.trim(), ui.lInput.value.trim()];
         if (raw.every(value => value === '')) return null;
@@ -797,11 +874,19 @@
         };
       }
 
+      function currentDisplaySettings() {
+        return {
+          minDisplayIntensity: Number(ui.displayCutoffSlider.value),
+          showAllCandidates: ui.showAllCandidates.checked
+        };
+      }
+
       function updateSliderReadouts() {
         const settings = currentRiskSettings();
         ui.s0Value.textContent = settings.s0.toFixed(4);
         ui.sigmaValue.textContent = settings.sigmaC.toFixed(4);
         ui.rCutValue.textContent = settings.rCut.toFixed(4);
+        ui.displayCutoffValue.textContent = Number(ui.displayCutoffSlider.value).toFixed(3);
       }
 
       function updateUvwReadout(uvw) {
@@ -809,7 +894,22 @@
         ui.uvwNorm.textContent = 'norm = ' + magnitude.toFixed(5);
       }
 
-      function buildPattern(uvw, markHkl, riskSettings) {
+      function updateCellReadout(cell) {
+        ui.cellReadout.textContent =
+          'a,b,c = ' + cell.slice(0, 3).map(value => value.toPrecision(5)).join(', ') +
+          '; angles = ' + cell.slice(3).map(value => value.toPrecision(5)).join(', ');
+      }
+
+      function rebuildLatticeForCell(cell) {
+        if (cellsMatch(cell, app.cell) && app.direct && app.reciprocal && app.fullReflections.length) return false;
+        app.cell = cell.slice();
+        app.direct = directCellMatrix(app.cell);
+        app.reciprocal = reciprocalCellMatrix(app.direct);
+        app.fullReflections = reciprocalPoints(app.direct, app.reciprocal, 1 / defaults.dMin, defaults.maxIndex);
+        return true;
+      }
+
+      function buildPattern(uvw, markHkl, riskSettings, displaySettings) {
         const qmax = 1 / defaults.dMin;
         const uvwNorm = norm(v(uvw[0], uvw[1], uvw[2]));
         const zone = [];
@@ -861,10 +961,10 @@
         for (let i = 0; i < candidates.length; i += 1) {
           const candidate = candidates[i];
           const intensity = clamp(intensities[i] / robustTop, 0, 1);
-          const displayIntensity = ui.showAllCandidates.checked ? clamp(0.12 + 0.88 * resolutionWeights[i], 0, 1) : intensity;
-          const keep = ui.showAllCandidates.checked
+          const displayIntensity = displaySettings.showAllCandidates ? clamp(0.12 + 0.88 * resolutionWeights[i], 0, 1) : intensity;
+          const keep = displaySettings.showAllCandidates
             ? candidate.forward
-            : candidate.forward && Math.abs(candidate.s) <= defaults.sMax && intensity >= defaults.minDisplayIntensity;
+            : candidate.forward && Math.abs(candidate.s) <= defaults.sMax && intensity >= displaySettings.minDisplayIntensity;
           if (keep) {
             displayIndices.push(i);
             displayIntensityByCandidate.set(i, displayIntensity);
@@ -878,8 +978,9 @@
           );
           if (markCandidateIndex >= 0 && candidates[markCandidateIndex].forward) {
             if (!displayIntensityByCandidate.has(markCandidateIndex)) {
+              const forcedIntensity = clamp(intensities[markCandidateIndex] / robustTop, 0, 1);
               displayIndices.push(markCandidateIndex);
-              displayIntensityByCandidate.set(markCandidateIndex, Math.max(0.35, intensities[markCandidateIndex] / robustTop));
+              displayIntensityByCandidate.set(markCandidateIndex, Math.max(0.35, forcedIntensity));
             }
           }
         }
@@ -903,7 +1004,8 @@
             risk: 0,
             e: 0,
             neighborSum: 0,
-            neighborCount: 0
+            neighborCount: 0,
+            activeNeighborCount: 0
           };
           if (markHkl && spot.h === markHkl[0] && spot.k === markHkl[1] && spot.l === markHkl[2]) {
             markDisplayIndex = displayIndex;
@@ -961,16 +1063,22 @@
           const neighbors = neighborLists[i];
           let neighborSum = 0;
           let neighborCount = 0;
+          let activeNeighborCount = 0;
           for (let n = 0; n < neighbors.indices.length; n += 1) {
             const distance = neighbors.distances[n];
             if (distance >= rCut) continue;
             const coupling = Math.exp(-Math.pow(distance / sigmaC, 2));
-            neighborSum += eAll[neighbors.indices[n]] * coupling;
+            const contribution = eAll[neighbors.indices[n]] * coupling;
+            neighborSum += contribution;
             neighborCount += 1;
+            if (eAll[neighbors.indices[n]] > 0 && contribution > defaults.envContributionFloor) {
+              activeNeighborCount += 1;
+            }
           }
           spot.e = eAll[spot.candidateIndex];
           spot.neighborSum = neighborSum;
           spot.neighborCount = neighborCount;
+          spot.activeNeighborCount = activeNeighborCount;
           spot.risk = spot.e * neighborSum;
         }
       }
@@ -1192,9 +1300,11 @@
         const pattern = app.pattern;
         if (!pattern) return;
         updateUvwReadout(pattern.uvw);
+        updateCellReadout(app.cell);
         ui.summaryReadout.innerHTML =
           '<div><strong>Risk source</strong>: ' + pattern.zoneCount + ' candidate reflections</div>' +
           '<div><strong>Displayed</strong>: ' + pattern.displaySpots.length + ' hkls</div>' +
+          '<div><strong>Visible cutoff</strong>: ' + Number(ui.displayCutoffSlider.value).toFixed(3) + '</div>' +
           '<div><strong>Color vmax</strong>: ' + formatNumber(pattern.vmax) + '</div>' +
           '<div><strong>View radius</strong>: ' + formatNumber(app.view.radius) + '</div>';
 
@@ -1216,21 +1326,25 @@
         ui.markReadout.innerHTML =
           '<div><strong>(' + spot.h + ' ' + spot.k + ' ' + spot.l + ')</strong></div>' +
           '<div>S_risk = ' + formatNumber(spot.risk) + '</div>' +
-          '<div>N_neighbor = ' + spot.neighborCount + '</div>' +
+          '<div>R_env = ' + formatNumber(spot.neighborSum) + '</div>' +
+          '<div>N_r_cut = ' + spot.neighborCount + '</div>' +
+          '<div>N_env = ' + spot.activeNeighborCount + '</div>' +
           '<div>E(g) = ' + formatNumber(spot.e) + '</div>' +
-          '<div>sum E(h)C = ' + formatNumber(spot.neighborSum) + '</div>' +
           '<div>s_g = ' + formatNumber(spot.s) + ' 1/A</div>' +
           '<div>|g| = ' + formatNumber(spot.q) + ' 1/A</div>';
       }
 
       function rebuildPattern(resetView=true) {
         try {
+          const cell = readCell();
           const uvw = readUvw();
           const markHkl = readMarkHkl();
           const riskSettings = currentRiskSettings();
+          const displaySettings = currentDisplaySettings();
+          const latticeChanged = rebuildLatticeForCell(cell);
           app.markHkl = markHkl;
-          ui.status.textContent = 'Computing reflections...';
-          const pattern = buildPattern(uvw, markHkl, riskSettings);
+          ui.status.textContent = latticeChanged ? 'Re-indexing reciprocal lattice...' : 'Computing reflections...';
+          const pattern = buildPattern(uvw, markHkl, riskSettings, displaySettings);
           app.pattern = pattern;
           if (resetView) resetViewToPattern();
           pattern.vmax = robustRiskMax(pattern.displaySpots);
@@ -1295,9 +1409,27 @@
 
       function bindUI() {
         ui.applyInputs.addEventListener('click', () => rebuildPattern(true));
-        [ui.uInput, ui.vInput, ui.wInput, ui.hInput, ui.kInput, ui.lInput].forEach(input => {
+        [
+          ui.aInput,
+          ui.bInput,
+          ui.cInput,
+          ui.alphaInput,
+          ui.betaInput,
+          ui.gammaInput,
+          ui.uInput,
+          ui.vInput,
+          ui.wInput,
+          ui.hInput,
+          ui.kInput,
+          ui.lInput
+        ].forEach(input => {
           input.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') rebuildPattern(true);
+          });
+        });
+        [ui.aInput, ui.bInput, ui.cInput, ui.alphaInput, ui.betaInput, ui.gammaInput].forEach(input => {
+          input.addEventListener('input', () => {
+            try { updateCellReadout(readCell()); } catch (err) { ui.cellReadout.textContent = 'cell = n/a'; }
           });
         });
         [ui.uInput, ui.vInput, ui.wInput].forEach(input => {
@@ -1311,9 +1443,14 @@
           ui.lInput.value = '';
           rebuildPattern(false);
         });
+        ui.resetCell.addEventListener('click', () => {
+          writeCellInputs(defaults.cell);
+          rebuildPattern(true);
+        });
         [ui.s0Slider, ui.sigmaSlider, ui.rCutSlider].forEach(slider => {
           slider.addEventListener('input', recomputeRiskOnly);
         });
+        ui.displayCutoffSlider.addEventListener('input', () => rebuildPattern(false));
         ui.showAllCandidates.addEventListener('change', () => rebuildPattern(true));
         [ui.showDirectBeam, ui.showLabels].forEach(input => input.addEventListener('change', drawPattern));
         ui.resetRisk.addEventListener('click', () => {
@@ -1416,7 +1553,9 @@
 
       function init() {
         try {
-          app.direct = directCellMatrix(defaults.cell);
+          writeCellInputs(defaults.cell);
+          app.cell = defaults.cell.slice();
+          app.direct = directCellMatrix(app.cell);
           app.reciprocal = reciprocalCellMatrix(app.direct);
           app.fullReflections = reciprocalPoints(app.direct, app.reciprocal, 1 / defaults.dMin, defaults.maxIndex);
           ui.status.textContent = app.fullReflections.length + ' reciprocal points indexed.';
@@ -1426,6 +1565,7 @@
         }
 
         updateSliderReadouts();
+        updateCellReadout(app.cell);
         bindUI();
         bindCanvas();
 
