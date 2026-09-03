@@ -305,6 +305,28 @@
       position: relative;
     }
 
+    .plot-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 245px;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .plot-readout {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 220px;
+    }
+
+    .plot-readout strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
     canvas {
       width: 100%;
       height: 100%;
@@ -381,6 +403,14 @@
       .canvas-wrap {
         min-height: 0;
         height: min(54vh, 560px);
+      }
+
+      .plot-body {
+        grid-template-columns: 1fr;
+      }
+
+      .plot-readout {
+        min-height: 0;
       }
     }
 
@@ -468,6 +498,11 @@
         border-radius: 10px;
         height: min(46vh, 360px);
       }
+
+      .plot-readout {
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
     }
   </style>
 </head>
@@ -483,10 +518,6 @@
 
     <div class="layout">
       <aside class="panel controls">
-        <div class="note">
-          <div class="formula">S_risk(g) = E(g) * R_env(g)<br>R_env(g) = sum E(h)C(g,h)<br>E(g) = exp[-(s_g/s0)^2]</div>
-        </div>
-
         <div class="control-group">
           <div class="control-inline-title">Unit cell</div>
           <div class="number-grid">
@@ -571,27 +602,23 @@
         </div>
 
         <div class="control-group">
-          <div class="control-inline-title">Display</div>
-          <div class="checkboxes">
-            <label class="checkbox"><input id="showAllCandidates" type="checkbox"> Show all forward candidates</label>
-            <label class="checkbox"><input id="showDirectBeam" type="checkbox" checked> Show direct beam</label>
-            <label class="checkbox"><input id="showLabels" type="checkbox" checked> Show marked label</label>
-          </div>
-        </div>
-
-        <div class="control-group">
           <div class="button-row">
             <button id="resetRisk" class="toggle-button" type="button">Reset risk</button>
             <button id="resetView" class="toggle-button" type="button">Reset view</button>
           </div>
         </div>
 
-        <div class="note">
-          <strong>Marked reflection</strong>
-          <div class="readout" id="markReadout"></div>
-        </div>
-
         <div class="readout" id="summaryReadout"></div>
+
+        <div class="note">
+          <div class="formula">
+            S_risk(g) = E(g) * R_env(g)<br>
+            R_env(g) = sum E(h)C(g,h) for h != g and d_gh <= r_cut<br>
+            E(g) = exp[-(s_g/s0)^2]<br>
+            C(g,h) = exp[-(d_gh/sigma_C)^2]<br>
+            d_gh = |g - h| in full 3D reciprocal space
+          </div>
+        </div>
       </aside>
 
       <section class="panel plot-panel">
@@ -600,9 +627,15 @@
           <div id="status" class="status">Building reciprocal lattice...</div>
         </div>
 
-        <div class="canvas-wrap">
-          <canvas id="vizCanvas"></canvas>
-          <div class="gesture-hint">Drag: pan · wheel or pinch: zoom · click a spot to mark it</div>
+        <div class="plot-body">
+          <div class="canvas-wrap">
+            <canvas id="vizCanvas"></canvas>
+            <div class="gesture-hint">Drag: pan · wheel or pinch: zoom · click a spot to mark it</div>
+          </div>
+          <aside class="plot-readout">
+            <strong>Marked reflection</strong>
+            <div class="readout" id="markReadout"></div>
+          </aside>
         </div>
 
         <div class="legend">
@@ -670,15 +703,17 @@
         displayCutoffValue: document.getElementById('displayCutoffValue'),
         uvwNorm: document.getElementById('uvwNorm'),
         cellReadout: document.getElementById('cellReadout'),
-        showAllCandidates: document.getElementById('showAllCandidates'),
-        showDirectBeam: document.getElementById('showDirectBeam'),
-        showLabels: document.getElementById('showLabels'),
         resetRisk: document.getElementById('resetRisk'),
         resetView: document.getElementById('resetView'),
         markReadout: document.getElementById('markReadout'),
         summaryReadout: document.getElementById('summaryReadout'),
         status: document.getElementById('status')
       };
+
+      defaults.s0 = Number(ui.s0Slider.value);
+      defaults.sigmaC = Number(ui.sigmaSlider.value);
+      defaults.rCut = Number(ui.rCutSlider.value);
+      defaults.minDisplayIntensity = Number(ui.displayCutoffSlider.value);
 
       function cssVar(name, fallback) {
         const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -876,8 +911,7 @@
 
       function currentDisplaySettings() {
         return {
-          minDisplayIntensity: Number(ui.displayCutoffSlider.value),
-          showAllCandidates: ui.showAllCandidates.checked
+          minDisplayIntensity: Number(ui.displayCutoffSlider.value)
         };
       }
 
@@ -961,10 +995,8 @@
         for (let i = 0; i < candidates.length; i += 1) {
           const candidate = candidates[i];
           const intensity = clamp(intensities[i] / robustTop, 0, 1);
-          const displayIntensity = displaySettings.showAllCandidates ? clamp(0.12 + 0.88 * resolutionWeights[i], 0, 1) : intensity;
-          const keep = displaySettings.showAllCandidates
-            ? candidate.forward
-            : candidate.forward && Math.abs(candidate.s) <= defaults.sMax && intensity >= displaySettings.minDisplayIntensity;
+          const displayIntensity = intensity;
+          const keep = candidate.forward && Math.abs(candidate.s) <= defaults.sMax && intensity >= displaySettings.minDisplayIntensity;
           if (keep) {
             displayIndices.push(i);
             displayIntensityByCandidate.set(i, displayIntensity);
@@ -1043,7 +1075,7 @@
             const dy = g.y - h.y;
             const dz = g.z - h.z;
             const d2 = dx * dx + dy * dy + dz * dz;
-            if (d2 < maxR2 && d2 > 1e-18) {
+            if (d2 <= maxR2 && d2 > 1e-18) {
               indices.push(j);
               distances.push(Math.sqrt(d2));
             }
@@ -1066,7 +1098,7 @@
           let activeNeighborCount = 0;
           for (let n = 0; n < neighbors.indices.length; n += 1) {
             const distance = neighbors.distances[n];
-            if (distance >= rCut) continue;
+            if (distance > rCut) continue;
             const coupling = Math.exp(-Math.pow(distance / sigmaC, 2));
             const contribution = eAll[neighbors.indices[n]] * coupling;
             neighborSum += contribution;
@@ -1249,7 +1281,7 @@
           ctx.restore();
         }
 
-        if (ui.showDirectBeam.checked) drawDirectBeam();
+        drawDirectBeam();
         drawMark();
       }
 
@@ -1281,11 +1313,9 @@
         ctx.beginPath();
         ctx.arc(p.x, p.y, 13, 0, TAU);
         ctx.stroke();
-        if (ui.showLabels.checked) {
-          ctx.fillStyle = colors.high;
-          ctx.font = '14px Georgia, "Times New Roman", serif';
-          ctx.fillText('(' + spot.h + ' ' + spot.k + ' ' + spot.l + ')', p.x + 10, p.y - 10);
-        }
+        ctx.fillStyle = colors.high;
+        ctx.font = '14px Georgia, "Times New Roman", serif';
+        ctx.fillText('(' + spot.h + ' ' + spot.k + ' ' + spot.l + ')', p.x + 10, p.y - 10);
         ctx.restore();
       }
 
@@ -1451,8 +1481,6 @@
           slider.addEventListener('input', recomputeRiskOnly);
         });
         ui.displayCutoffSlider.addEventListener('input', () => rebuildPattern(false));
-        ui.showAllCandidates.addEventListener('change', () => rebuildPattern(true));
-        [ui.showDirectBeam, ui.showLabels].forEach(input => input.addEventListener('change', drawPattern));
         ui.resetRisk.addEventListener('click', () => {
           ui.s0Slider.value = defaults.s0;
           ui.sigmaSlider.value = defaults.sigmaC;
