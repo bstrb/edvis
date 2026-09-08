@@ -229,12 +229,13 @@
       gap: 8px;
     }
 
-    .checkbox {
+    .control-group label.checkbox {
       display: flex;
       align-items: center;
       gap: 10px;
       font-size: 0.95rem;
       color: var(--text);
+      margin-bottom: 0;
     }
 
     .checkbox input {
@@ -591,6 +592,14 @@
         </div>
 
         <div class="control-group">
+          <label class="checkbox">
+            <input id="includeTargetExcitation" type="checkbox" checked>
+            <span>Multiply S_risk by E(g)</span>
+          </label>
+          <div class="derived-readout">Turn off for local reciprocal risk only.</div>
+        </div>
+
+        <div class="control-group">
           <label for="displayCutoffSlider">minimum visible spot intensity</label>
           <div class="row">
             <div class="range-wrap">
@@ -611,10 +620,10 @@
         <div class="readout" id="summaryReadout"></div>
 
         <div class="note">
-          <div class="formula">
+          <div class="formula" id="riskFormula">
             S_risk(g) = E(g) * R_env(g)<br>
-            R_env(g) = sum E(h)C(g,h) for h != g and d_gh <= r_cut<br>
-            E(g) = exp[-(s_g/s0)^2]<br>
+            R_env(g) = sum E(h)C(g,h) for h != g and d_gh < r_cut<br>
+            E(x) = exp[-(s_x/s0)^2]<br>
             C(g,h) = exp[-(d_gh/sigma_C)^2]<br>
             d_gh = |g - h| in full 3D reciprocal space
           </div>
@@ -696,6 +705,7 @@
         s0Slider: document.getElementById('s0Slider'),
         sigmaSlider: document.getElementById('sigmaSlider'),
         rCutSlider: document.getElementById('rCutSlider'),
+        includeTargetExcitation: document.getElementById('includeTargetExcitation'),
         displayCutoffSlider: document.getElementById('displayCutoffSlider'),
         s0Value: document.getElementById('s0Value'),
         sigmaValue: document.getElementById('sigmaValue'),
@@ -707,12 +717,14 @@
         resetView: document.getElementById('resetView'),
         markReadout: document.getElementById('markReadout'),
         summaryReadout: document.getElementById('summaryReadout'),
+        riskFormula: document.getElementById('riskFormula'),
         status: document.getElementById('status')
       };
 
       defaults.s0 = Number(ui.s0Slider.value);
       defaults.sigmaC = Number(ui.sigmaSlider.value);
       defaults.rCut = Number(ui.rCutSlider.value);
+      defaults.includeTargetExcitation = ui.includeTargetExcitation.checked;
       defaults.minDisplayIntensity = Number(ui.displayCutoffSlider.value);
 
       function cssVar(name, fallback) {
@@ -905,7 +917,8 @@
         return {
           s0: Number(ui.s0Slider.value),
           sigmaC: Number(ui.sigmaSlider.value),
-          rCut: Number(ui.rCutSlider.value)
+          rCut: Number(ui.rCutSlider.value),
+          includeTargetExcitation: ui.includeTargetExcitation.checked
         };
       }
 
@@ -921,6 +934,22 @@
         ui.sigmaValue.textContent = settings.sigmaC.toFixed(4);
         ui.rCutValue.textContent = settings.rCut.toFixed(4);
         ui.displayCutoffValue.textContent = Number(ui.displayCutoffSlider.value).toFixed(3);
+        updateRiskFormula(settings);
+      }
+
+      function updateRiskFormula(settings) {
+        const riskLine = settings.includeTargetExcitation
+          ? 'S_risk(g) = E(g) * R_env(g)'
+          : 'S_risk(g) = sum E(h)C(g,h) for h != g and d_gh < r_cut';
+        const envLine = settings.includeTargetExcitation
+          ? 'R_env(g) = sum E(h)C(g,h) for h != g and d_gh < r_cut<br>'
+          : '';
+        ui.riskFormula.innerHTML =
+          riskLine + '<br>' +
+          envLine +
+          'E(x) = exp[-(s_x/s0)^2]<br>' +
+          'C(g,h) = exp[-(d_gh/sigma_C)^2]<br>' +
+          'd_gh = |g - h| in full 3D reciprocal space';
       }
 
       function updateUvwReadout(uvw) {
@@ -1089,6 +1118,7 @@
         const s0 = Math.max(settings.s0, 1e-12);
         const sigmaC = Math.max(settings.sigmaC, 1e-12);
         const rCut = Math.max(settings.rCut, 0);
+        const includeTargetExcitation = settings.includeTargetExcitation !== false;
         const eAll = candidates.map(candidate => Math.exp(-Math.pow(candidate.s / s0, 2)));
         for (let i = 0; i < displaySpots.length; i += 1) {
           const spot = displaySpots[i];
@@ -1098,7 +1128,7 @@
           let activeNeighborCount = 0;
           for (let n = 0; n < neighbors.indices.length; n += 1) {
             const distance = neighbors.distances[n];
-            if (distance > rCut) continue;
+            if (distance >= rCut) continue;
             const coupling = Math.exp(-Math.pow(distance / sigmaC, 2));
             const contribution = eAll[neighbors.indices[n]] * coupling;
             neighborSum += contribution;
@@ -1111,7 +1141,7 @@
           spot.neighborSum = neighborSum;
           spot.neighborCount = neighborCount;
           spot.activeNeighborCount = activeNeighborCount;
-          spot.risk = spot.e * neighborSum;
+          spot.risk = includeTargetExcitation ? spot.e * neighborSum : neighborSum;
         }
       }
 
@@ -1327,6 +1357,7 @@
 
       function updateReadouts() {
         updateSliderReadouts();
+        const riskSettings = currentRiskSettings();
         const pattern = app.pattern;
         if (!pattern) return;
         updateUvwReadout(pattern.uvw);
@@ -1334,6 +1365,7 @@
         ui.summaryReadout.innerHTML =
           '<div><strong>Risk source</strong>: ' + pattern.zoneCount + ' candidate reflections</div>' +
           '<div><strong>Displayed</strong>: ' + pattern.displaySpots.length + ' hkls</div>' +
+          '<div><strong>S_risk mode</strong>: ' + (riskSettings.includeTargetExcitation ? 'E(g) * R_env' : 'R_env only') + '</div>' +
           '<div><strong>Visible cutoff</strong>: ' + Number(ui.displayCutoffSlider.value).toFixed(3) + '</div>' +
           '<div><strong>Color vmax</strong>: ' + formatNumber(pattern.vmax) + '</div>' +
           '<div><strong>View radius</strong>: ' + formatNumber(app.view.radius) + '</div>';
@@ -1480,11 +1512,13 @@
         [ui.s0Slider, ui.sigmaSlider, ui.rCutSlider].forEach(slider => {
           slider.addEventListener('input', recomputeRiskOnly);
         });
+        ui.includeTargetExcitation.addEventListener('change', recomputeRiskOnly);
         ui.displayCutoffSlider.addEventListener('input', () => rebuildPattern(false));
         ui.resetRisk.addEventListener('click', () => {
           ui.s0Slider.value = defaults.s0;
           ui.sigmaSlider.value = defaults.sigmaC;
           ui.rCutSlider.value = defaults.rCut;
+          ui.includeTargetExcitation.checked = defaults.includeTargetExcitation;
           recomputeRiskOnly();
         });
         ui.resetView.addEventListener('click', () => {
