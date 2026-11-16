@@ -1,0 +1,335 @@
+{
+  "date": "2026-11-11",
+  "html": "/Users/xiaodong/Desktop/edvis/diffraction_risk_viewer_v2.html",
+  "html_sha256": "a7bc1a4fad59b05aa976de99c5e12b0a5fcc72a72bd1f65a4b273698d12b72e2",
+  "original": "/Users/xiaodong/Desktop/edvis/diffraction_risk_viewer.html",
+  "original_sha256_before": "2266cc91bf8adb9b3922c75883397efb7644bab95e3b8a7b7a14df09a12f2ed7",
+  "original_sha256_after": "2266cc91bf8adb9b3922c75883397efb7644bab95e3b8a7b7a14df09a12f2ed7",
+  "original_unchanged": true,
+  "separate_LTA_study_modified_or_rerun": false,
+  "numerical": {
+    "passed": 24,
+    "failed": 0,
+    "tests": [
+      {
+        "name": "Gaussian E(s0) = exp(-1), without factor 1/2",
+        "passed": true
+      },
+      {
+        "name": "cubic optimized sum vs independent absolute-index brute force",
+        "passed": true,
+        "neighborCount": 32,
+        "optimized": 0.8646245179328771,
+        "bruteForce": 0.8646245179328765,
+        "absoluteError": 5.551115123125783e-16
+      },
+      {
+        "name": "cubic tilted optimized score vs independently rotated brute force",
+        "passed": true,
+        "optimized": 0.8440452391577067,
+        "bruteForce": 0.8440452391577073,
+        "absoluteError": 6.661338147750939e-16
+      },
+      {
+        "name": "cubic complete contributions reproduce R_env",
+        "passed": true
+      },
+      {
+        "name": "cubic direct-coordinate beam and reciprocal duality",
+        "passed": true
+      },
+      {
+        "name": "cubic positive [uvw] scaling preserves scores",
+        "passed": true
+      },
+      {
+        "name": "cubic optional weighting affects only final score",
+        "passed": true
+      },
+      {
+        "name": "cubic display filters preserve target score",
+        "passed": true
+      },
+      {
+        "name": "cubic neighbors beyond display sphere included",
+        "passed": true
+      },
+      {
+        "name": "nonorthogonal optimized sum vs independent absolute-index brute force",
+        "passed": true,
+        "neighborCount": 58,
+        "optimized": 2.2471716649827305,
+        "bruteForce": 2.247171664982732,
+        "absoluteError": 1.3322676295501878e-15
+      },
+      {
+        "name": "nonorthogonal tilted optimized score vs independently rotated brute force",
+        "passed": true,
+        "optimized": 2.2681223937156,
+        "bruteForce": 2.2681223937156005,
+        "absoluteError": 4.440892098500626e-16
+      },
+      {
+        "name": "nonorthogonal complete contributions reproduce R_env",
+        "passed": true
+      },
+      {
+        "name": "nonorthogonal direct-coordinate beam and reciprocal duality",
+        "passed": true
+      },
+      {
+        "name": "nonorthogonal positive [uvw] scaling preserves scores",
+        "passed": true
+      },
+      {
+        "name": "nonorthogonal optional weighting affects only final score",
+        "passed": true
+      },
+      {
+        "name": "nonorthogonal display filters preserve target score",
+        "passed": true
+      },
+      {
+        "name": "nonorthogonal neighbors beyond display sphere included",
+        "passed": true
+      },
+      {
+        "name": "Inclusive cutoff, exact six axial neighbors, self excluded",
+        "passed": true
+      },
+      {
+        "name": "000 explicitly present, E(000)=1, exact direct-beam contribution",
+        "passed": true
+      },
+      {
+        "name": "Zero cutoff produces zero neighbors and score",
+        "passed": true
+      },
+      {
+        "name": "No index cap: offsets reach \u00b1100",
+        "passed": true
+      },
+      {
+        "name": "Stable orthonormal laboratory basis under tilts",
+        "passed": true
+      },
+      {
+        "name": "Exact rationalized radial error agrees with direct radial norm",
+        "passed": true
+      },
+      {
+        "name": "Authoritative exploratory defaults, target weighting OFF",
+        "passed": true
+      }
+    ]
+  },
+  "browser": {
+    "browser": "Chrome/157.0.8103.50",
+    "standaloneURL": "file:///Users/xiaodong/Desktop/edvis/diffraction_risk_viewer_v2.html",
+    "passed": 49,
+    "failed": 0,
+    "startupMilliseconds": 917.3000000119209,
+    "tests": [
+      {
+        "name": "Standalone file startup, authoritative defaults and unweighted score",
+        "passed": true
+      },
+      {
+        "name": "Contribution table rendered and complete rows reproduce R_env",
+        "passed": true
+      },
+      {
+        "name": "Actual canvas click selects a displayed reflection",
+        "passed": true
+      },
+      {
+        "name": "Wheel zoom and pointer pan preserve scores without recomputation",
+        "passed": true
+      },
+      {
+        "name": "Resolution/excitation display filters preserve retained target score",
+        "passed": true
+      },
+      {
+        "name": "Weighting toggle changes only final score",
+        "passed": true
+      },
+      {
+        "name": "Reset score restores exploratory defaults and weighting OFF",
+        "passed": true
+      },
+      {
+        "name": "Score slider updates numeric input and current score",
+        "passed": true
+      },
+      {
+        "name": "Numeric inputs synchronize all score sliders exactly",
+        "passed": true
+      },
+      {
+        "name": "Independent cutoff button sets 3 sigma",
+        "passed": true
+      },
+      {
+        "name": "Cutoff remains independently editable",
+        "passed": true
+      },
+      {
+        "name": "Startup and reset-all agree numerically",
+        "passed": true
+      },
+      {
+        "name": "Continuous tilts update score while locked color scale stays fixed",
+        "passed": true
+      },
+      {
+        "name": "Tilt numeric inputs synchronize sliders",
+        "passed": true
+      },
+      {
+        "name": "Zero tilt restores original score with fixed detector basis",
+        "passed": true
+      },
+      {
+        "name": "Automatic rescaling explicitly labeled",
+        "passed": true
+      },
+      {
+        "name": "Editing absolute color bounds locks scale",
+        "passed": true
+      },
+      {
+        "name": "Approximate LTA preset fields and other settings preserved",
+        "passed": true
+      },
+      {
+        "name": "Original preset restores original cell, zero-tilt orientation, hkl and wavelength",
+        "passed": true
+      },
+      {
+        "name": "Target beyond original index cap remains inspectable",
+        "passed": true
+      },
+      {
+        "name": "Backward target scored and hidden with forward-projection reason",
+        "passed": true
+      },
+      {
+        "name": "Any nonzero target outside filters remains inspectable, empty display valid",
+        "passed": true
+      },
+      {
+        "name": "Hidden projection explicitly labeled",
+        "passed": true
+      },
+      {
+        "name": "Eligible 000 has a distinct contribution row",
+        "passed": true
+      },
+      {
+        "name": "Hiding 000 reference leaves its contribution and score unchanged",
+        "passed": true
+      },
+      {
+        "name": "Contribution table sorts both ways",
+        "passed": true
+      },
+      {
+        "name": "All neighbor rows can be inspected",
+        "passed": true
+      },
+      {
+        "name": "Omitted contribution sum explicitly reported",
+        "passed": true
+      },
+      {
+        "name": "Invalid positive cell lengths clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid nonphysical cell angles clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid zero wavelength clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid zero direction clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid fractional hkl clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid 000 target clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid reversed resolution bounds clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid zero excitation width clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid negative coupling width clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid negative cutoff clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid negative display excitation clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid out-of-range tilt clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid invalid color range clears current results",
+        "passed": true
+      },
+      {
+        "name": "Invalid blank numeric field clears current results",
+        "passed": true
+      },
+      {
+        "name": "UI [uvw] positive scaling preserves orientation and scores",
+        "passed": true
+      },
+      {
+        "name": "Nonorthogonal cell works in browser",
+        "passed": true
+      },
+      {
+        "name": "Large enumeration yields while controls remain available",
+        "passed": true
+      },
+      {
+        "name": "Rapid changes cancel obsolete calculation and show current settings",
+        "passed": true
+      },
+      {
+        "name": "Responsive mobile layout has no horizontal page overflow",
+        "passed": true
+      },
+      {
+        "name": "Touch pinch zoom preserves selected score",
+        "passed": true
+      },
+      {
+        "name": "No uncaught browser exceptions",
+        "passed": true,
+        "detail": []
+      }
+    ],
+    "browserExceptions": []
+  },
+  "total_passed": 73,
+  "total_failed": 0
+}

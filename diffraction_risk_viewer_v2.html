@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Diffraction Risk Explorer · complete environments</title><style>
+    :root {
+      --bg: #f5f1e8;
+      --panel: #fffdf8;
+      --panel-strong: #f2e6d2;
+      --border: #cdbd9f;
+      --text: #2c2419;
+      --muted: #665948;
+      --accent: #a14d2a;
+      --accent-2: #206a5d;
+      --trace-center: #d97706;
+      --trace-marker: #b91c1c;
+      --trace-x: #15803d;
+      --trace-z: #7c3aed;
+      --pivot: #0f766e;
+      --grid: #d9cfbf;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16px;
+      background:
+        radial-gradient(circle at top left, rgba(161, 77, 42, 0.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(32, 106, 93, 0.14), transparent 28%),
+        linear-gradient(180deg, #f7f3eb 0%, var(--bg) 100%);
+      color: var(--text);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .page {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 24px;
+      padding-left: max(24px, env(safe-area-inset-left));
+      padding-right: max(24px, env(safe-area-inset-right));
+      padding-top: max(24px, env(safe-area-inset-top));
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+    }
+
+    .header {
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-size: 0.78rem;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.3rem);
+      line-height: 0.96;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      max-width: 860px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 350px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(54, 37, 15, 0.08);
+    }
+
+    .controls {
+      padding: 18px;
+      position: sticky;
+      top: 18px;
+    }
+
+    .plot-panel {
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .note {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    .control-group {
+      margin-bottom: 14px;
+    }
+
+    .control-group label,
+    .control-inline-title {
+      display: block;
+      font-size: 0.92rem;
+      margin-bottom: 6px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .range-wrap {
+      display: grid;
+      gap: 6px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    input[type="number"],
+    select,
+    button {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fffdf9;
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+    }
+
+    input[type="number"] {
+      font-variant-numeric: tabular-nums;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .button-row .wide {
+      grid-column: 1 / -1;
+    }
+
+    .toggle-button {
+      background: var(--panel-strong);
+      font-weight: 600;
+    }
+
+    .toggle-button:hover {
+      background: #efe0c9;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .value-box {
+      min-width: 74px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .derived-readout {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .number-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .number-grid + .number-grid {
+      margin-top: 8px;
+    }
+
+    .number-grid label {
+      margin-bottom: 0;
+    }
+
+    .number-grid span {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .checkboxes {
+      display: grid;
+      gap: 8px;
+    }
+
+    .control-group label.checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    .checkbox input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .readout {
+      display: grid;
+      gap: 5px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.35;
+    }
+
+    .readout strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .formula {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: var(--muted);
+      word-break: break-word;
+    }
+
+    .plot-topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .plot-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .status {
+      min-height: 1.3em;
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      height: min(70vh, 720px);
+      min-height: 590px;
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.76), rgba(245, 241, 232, 0.92)),
+        repeating-linear-gradient(
+          135deg,
+          rgba(161, 77, 42, 0.04),
+          rgba(161, 77, 42, 0.04) 12px,
+          rgba(32, 106, 93, 0.03) 12px,
+          rgba(32, 106, 93, 0.03) 24px
+        );
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .plot-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 245px;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .plot-readout {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 220px;
+    }
+
+    .plot-readout strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    .gesture-hint {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: rgba(255, 253, 249, 0.9);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.86rem;
+      pointer-events: none;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-top: 12px;
+      font-size: 0.93rem;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 24px;
+      height: 0;
+      border-top-width: 3px;
+      border-top-style: solid;
+    }
+
+    .risk-strip {
+      width: 84px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(44, 36, 25, 0.18);
+      background: linear-gradient(90deg, #2b4f6b, #206a5d, #d97706, #b91c1c);
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .plot-panel {
+        order: -1;
+        position: sticky;
+        top: max(10px, env(safe-area-inset-top));
+        z-index: 10;
+      }
+
+      .canvas-wrap {
+        min-height: 0;
+        height: min(54vh, 560px);
+      }
+
+      .plot-body {
+        grid-template-columns: 1fr;
+      }
+
+      .plot-readout {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 16px;
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-top: max(16px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+      }
+
+      .header {
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-size: clamp(1.65rem, 6.5vw, 2.2rem);
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .layout {
+        gap: 12px;
+      }
+
+      .plot-panel {
+        padding: 8px;
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(54, 37, 15, 0.14);
+      }
+
+      .controls {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .value-box {
+        text-align: left;
+        min-width: 0;
+      }
+
+      input[type="range"] {
+        height: 34px;
+      }
+
+      input[type="number"],
+      select,
+      button {
+        min-height: 44px;
+      }
+
+      .checkboxes {
+        gap: 12px;
+      }
+
+      .checkbox input {
+        width: 20px;
+        height: 20px;
+      }
+
+      .plot-topbar {
+        align-items: flex-start;
+        margin-bottom: 6px;
+      }
+
+      .plot-title {
+        font-size: 1rem;
+      }
+
+      .legend,
+      .footer-note,
+      .gesture-hint {
+        display: none;
+      }
+
+      .canvas-wrap {
+        border-radius: 10px;
+        height: min(46vh, 360px);
+      }
+
+      .plot-readout {
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+    }
+  
+    .page { max-width: 1520px; }
+    .layout { grid-template-columns: 340px minmax(0,1fr); }
+    .controls { position: static; }
+    .plot-body { grid-template-columns: minmax(0,1fr); }
+    .plot-readout { min-height: 0; margin-top: 12px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(155px,1fr)); gap: 8px 16px; }
+    .metrics div { background: #fffdf8; padding: 8px; border-radius: 6px; }
+    .metrics strong { display: inline; }
+    .row { grid-template-columns: minmax(0,1fr) 100px; }
+    .compact { font-size: .85rem; }
+    .canvas-wrap { min-height: 360px; height: min(60vh,640px); }
+    .section-title { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 18px; }
+    .colorbar { margin: 12px 0; padding: 10px 12px; background: var(--panel-strong); border-radius: 10px; }
+    .color-gradient { height: 14px; margin-top: 8px; border-radius: 4px; background: linear-gradient(90deg,#2b4f6b 0%,#206a5d 36%,#d97706 68%,#b91c1c 100%); }
+    .ticks { display: flex; justify-content: space-between; font-size: .78rem; font-variant-numeric: tabular-nums; }
+    .scale-controls { display:flex; gap: 10px; align-items:center; flex-wrap:wrap; margin-top: 8px; }
+    .scale-controls input[type=number] { width: 110px; padding: 6px; }
+    .scale-controls label { font-size: .85rem; }
+    .table-wrap { overflow: auto; max-height: 420px; margin-top: 10px; }
+    table { width:100%; border-collapse:collapse; font: .82rem ui-monospace,monospace; white-space:nowrap; }
+    th,td { text-align:right; padding:8px; border-bottom:1px solid var(--border); }
+    th:first-child,td:first-child { text-align:left; }
+    th { position:sticky; top:0; background:var(--panel-strong); }
+    th button { padding:0; border:0; background:none; font:inherit; font-weight:bold; text-align:inherit; white-space:nowrap; }
+    tr.direct { background:#e0eee6; font-weight:bold; }
+    .error { color:#a32020; font-weight:bold; }
+    .pending { opacity: .45; }
+    .status { max-width: 100%; }
+    .formula { color:var(--text); }
+    details { margin-top:14px; line-height:1.5; }
+    summary { cursor:pointer; font-weight:bold; }
+    .legend { font-size:.85rem; }
+    .hint { color:var(--muted); font-size:.84rem; line-height:1.45; }
+    .number-grid input { font-size: .9rem; padding-left: 8px; padding-right: 4px; }
+    input:invalid { border-color:#b91c1c; }
+    button:focus-visible,input:focus-visible,select:focus-visible { outline:2px solid var(--accent-2); outline-offset:2px; }
+    @media(max-width:1100px) { .layout { grid-template-columns:300px minmax(0,1fr); } }
+    @media(max-width:980px) { .layout { grid-template-columns:1fr; } .plot-panel { position:static; order:0; } .controls { order:1; } .canvas-wrap { height:48vh; min-height:300px; } }
+    @media(max-width:720px) { .subtitle,.legend,.footer-note { display:block; } .row { grid-template-columns:minmax(0,1fr) 100px; } .metrics { grid-template-columns:1fr 1fr; } .canvas-wrap { height:350px; min-height:0; } .number-grid { gap:5px; } .number-grid input { padding:8px 6px; min-width:0; } }
+</style></head>
+<body>
+<div class="page">
+  <header class="header"><div class="eyebrow">Reciprocal space · exploratory model</div>
+    <h1>Diffraction Risk Explorer</h1>
+    <p class="subtitle">Complete local reciprocal-lattice environments at a chosen orientation. Equal-size reflections show an absolute, dimensionless Gaussian score; this viewer does not calculate diffraction intensities.</p>
+  </header>
+  <div class="layout">
+    <aside class="panel controls">
+      <div class="control-group">
+        <label for="presetSelect">Example preset</label>
+        <select id="presetSelect"><option value="original">Original example</option><option value="lta">LTA (approximate)</option></select>
+        <button id="applyPreset" type="button">Load preset fields</button>
+        <p class="hint">Original loads its cell, [uvw] with zero tilts, marked hkl, and λ. Approximate LTA loads only its cubic cell, λ and upper display d*. Other settings are preserved. Presets do not reset the viewport.</p>
+      </div>
+      <div class="control-group">
+        <div class="control-inline-title">Unit cell · lengths Å, angles °</div>
+        <div class="number-grid">
+          <label><span>a (Å)</span><input id="aInput" type="number" step="any" min="0" required></label>
+          <label><span>b (Å)</span><input id="bInput" type="number" step="any" min="0" required></label>
+          <label><span>c (Å)</span><input id="cInput" type="number" step="any" min="0" required></label>
+        </div>
+        <div class="number-grid">
+          <label><span>α (°)</span><input id="alphaInput" type="number" step="any" min="0" max="180" required></label>
+          <label><span>β (°)</span><input id="betaInput" type="number" step="any" min="0" max="180" required></label>
+          <label><span>γ (°)</span><input id="gammaInput" type="number" step="any" min="0" max="180" required></label>
+        </div>
+        <label for="lambdaInput">Wavelength λ (Å)</label><input id="lambdaInput" type="number" step="any" min="0" required>
+      </div>
+      <div class="control-group">
+        <div class="control-inline-title">Base beam direction [uvw]</div>
+        <div class="number-grid">
+          <label><span>u</span><input id="uInput" type="number" step="any" required></label>
+          <label><span>v</span><input id="vInput" type="number" step="any" required></label>
+          <label><span>w</span><input id="wInput" type="number" step="any" required></label>
+        </div>
+        <p class="hint">Dimensionless direct-coordinate coefficients. Beam at zero tilt = A[uvw] / |A[uvw]|, including for nonorthogonal cells.</p>
+        <label for="tiltXSlider">Crystal tilt about fixed lab X (°)</label>
+        <div class="row"><input id="tiltXSlider" type="range" min="-15" max="15" step="0.01"><input id="tiltXInput" aria-label="Lab X tilt degrees" type="number" min="-180" max="180" step="any" required></div>
+        <label for="tiltYSlider">Crystal tilt about fixed lab Y (°)</label>
+        <div class="row"><input id="tiltYSlider" type="range" min="-15" max="15" step="0.01"><input id="tiltYInput" aria-label="Lab Y tilt degrees" type="number" min="-180" max="180" step="any" required></div>
+        <button id="zeroTilts" type="button">Zero tilts</button>
+        <div class="derived-readout" id="orientationReadout"></div>
+      </div>
+      <div class="control-group">
+        <div class="control-inline-title">Inspect any nonzero integer hkl</div>
+        <div class="number-grid">
+          <label><span>h</span><input id="hInput" type="number" step="1"></label>
+          <label><span>k</span><input id="kInput" type="number" step="1"></label>
+          <label><span>l</span><input id="lInput" type="number" step="1"></label>
+        </div>
+        <div class="button-row"><button id="applyInputs" class="primary" type="button">Apply / inspect</button><button id="clearMark" type="button">Clear selection</button></div>
+        <label class="checkbox"><input id="showHiddenMark" type="checkbox"><span>Dashed projection for hidden selection</span></label>
+      </div>
+      <div class="control-group section-title">
+        <div class="control-inline-title">Display filters · independent of scoring</div>
+        <div class="number-grid" style="grid-template-columns:1fr 1fr">
+          <label><span>Lower d* (Å⁻¹)</span><input id="qMinInput" type="number" step="any" min="0" required></label>
+          <label><span>Upper d* (Å⁻¹)</span><input id="qMaxInput" type="number" step="any" min="0" required></label>
+        </div>
+        <div id="resolutionReadout" class="derived-readout"></div>
+        <label for="sDisplayInput">Display |s_g| ≤ (Å⁻¹)</label><input id="sDisplayInput" type="number" min="0" step="any" required>
+        <label class="checkbox"><input id="showDirectBeam" type="checkbox"><span>Show 000 reference (always in scoring)</span></label>
+      </div>
+      <div class="control-group section-title">
+        <div class="control-inline-title">Score parameters · Å⁻¹</div>
+        <p class="hint">Exploratory defaults, not calibrated physical LTA constants. The cutoff is independent of σ_C.</p>
+        <label for="s0Slider">s₀ · excitation width</label>
+        <div class="row"><input id="s0Slider" type="range" min="0.0001" max="0.05" step="0.0001"><input id="s0Input" aria-label="s0 in inverse angstroms" type="number" step="any" min="0" required></div>
+        <label for="sigmaSlider">σ_C · coupling width</label>
+        <div class="row"><input id="sigmaSlider" type="range" min="0.005" max="0.5" step="0.001"><input id="sigmaInput" aria-label="sigma C in inverse angstroms" type="number" step="any" min="0" required></div>
+        <label for="rCutSlider">r_cut · inclusive 3D cutoff</label>
+        <div class="row"><input id="rCutSlider" type="range" min="0" max="1" step="0.005"><input id="rCutInput" aria-label="cutoff in inverse angstroms" type="number" step="any" min="0" required></div>
+        <button id="threeSigma" type="button">Set r_cut = 3 σ_C</button>
+        <label class="checkbox"><input id="includeTargetExcitation" type="checkbox"><span>Color by E(g) × R_env(g)</span></label>
+        <div class="button-row"><button id="resetRisk" type="button">Reset score</button><button id="resetAll" type="button">Reset all</button></div>
+      </div>
+      <div class="readout" id="summaryReadout" aria-live="polite"></div>
+      <div class="note" style="margin-top:14px"><div class="formula">
+        R_env(g) = Σ E(h) C(g,h)<br>h ≠ g; |g−h| ≤ r_cut<br>
+        E(h) = exp[−(s_h/s₀)²]<br>C(g,h) = exp[−(|g−h|/σ_C)²]<br>
+        All integer neighbors, including 000 and unobserved points. No normalization or extra terms.
+      </div></div>
+    </aside>
+    <main class="panel plot-panel">
+      <div class="plot-topbar"><h2 class="plot-title" id="plotTitle">Environmental score R_env(g)</h2><div id="status" class="status" role="status" aria-live="polite"></div></div>
+      <div class="button-row" style="max-width:320px;margin-bottom:10px"><button id="resetView" type="button">Fit display / reset pan</button><button id="centerMark" type="button">Center selection</button></div>
+      <div class="canvas-wrap"><canvas id="vizCanvas" aria-label="Projected reflections; select using hkl inputs or click a spot"></canvas><div class="gesture-hint">Drag: pan · wheel / pinch: zoom · click: select</div></div>
+      <div class="legend">● Equal-size score markers &nbsp; ⊕ 000 reference &nbsp; ○ Selected displayed target &nbsp; ◇ Dashed: optional hidden-target projection</div>
+      <div class="colorbar">
+        <strong id="colorLabel">R_env(g) · dimensionless</strong><div class="color-gradient"></div><div class="ticks" id="colorTicks"></div>
+        <div class="scale-controls"><label><input id="lockScale" type="checkbox"> Lock absolute color scale</label><label>Min <input id="colorMinInput" type="number" step="any" min="0" required></label><label>Max <input id="colorMaxInput" type="number" step="any" min="0" required></label></div>
+        <div id="scaleReadout" class="hint"></div>
+      </div>
+      <section class="plot-readout"><strong>Selected reflection</strong><div id="markReadout" class="readout"></div></section>
+      <section id="contributionPanel">
+        <div class="plot-topbar" style="margin-top:18px"><h2 class="plot-title">Neighbor contributions</h2><label class="compact">Rows <select id="tableLimit" style="width:auto;padding:5px"><option value="100">100</option><option value="500">500</option><option value="all">All</option></select></label></div>
+        <div id="contributionSummary" class="hint"></div>
+        <div class="table-wrap"><table id="contributionTable"><thead><tr>
+          <th aria-sort="none"><button data-sort="hkl" type="button">Neighbor hkl ↕</button></th>
+          <th aria-sort="none"><button data-sort="s" type="button">s_h (Å⁻¹) ↕</button></th>
+          <th aria-sort="none"><button data-sort="distance" type="button">|g−h| (Å⁻¹) ↕</button></th>
+          <th aria-sort="none"><button data-sort="e" type="button">E(h) ↕</button></th>
+          <th aria-sort="none"><button data-sort="coupling" type="button">Coupling ↕</button></th>
+          <th aria-sort="descending"><button data-sort="contribution" type="button">Contribution ↓</button></th>
+        </tr></thead><tbody id="contributionBody"></tbody></table></div>
+      </section>
+      <details open><summary>Scientific conventions and visibility</summary>
+        <p>Direct cell A has columns a, b, c in a right-handed Cartesian crystal frame. B = A⁻ᵀ; g = B(h,k,l) in Å⁻¹, with no 2π. The incident beam k₀ points along fixed laboratory +Z with |k₀| = 1/λ. At zero tilt its crystal direction is A[uvw] normalized. Lab X is the projection of a perpendicular to that beam (fallback b); Y = Z × X. Crystal rotations apply about fixed lab X then fixed lab Y. The detector axes stay fixed during these tilts.</p>
+        <p>Exact radial excitation error: s_h = |k₀ + Bh| − |k₀|. The implementation uses its algebraically equivalent rationalized form to avoid cancellation. The Gaussian uses exp[−(s/s₀)²], with no factor ½. Its sign is immaterial. All distances in the environmental sum are full 3D reciprocal distances.</p>
+        <p>Normally displayed targets are nonzero integer hkl satisfying lower d* ≤ |g| ≤ upper d*, |s_g| ≤ s_display, and k₀,Z + g_Z &gt; 0 (forward projection). Projection axes are detector slopes X = g_X/(1/λ+g_Z), Y = g_Y/(1/λ+g_Z), dimensionless. Neither display filters nor pan/zoom change any target's score. The selected hkl is scored even outside these filters; its optional dashed projection is not a normally displayed spot.</p>
+        <p>For every target, all nonzero integer offsets Δhkl with |BΔhkl| ≤ r_cut are enumerated; h = g + Δhkl can be outside the display sphere or excitation window. There is no zone slab, index cap, structure factor, zone-axis bonus, or intensity model. The direct beam has s₀₀₀ = 0 and E(000) = 1; when eligible it contributes exp[−(|g|/σ_C)²], regardless of reference-marker visibility. A relative numerical cutoff tolerance of 64 machine epsilons × max(1, r_cut) Å⁻¹ includes boundary neighbors.</p>
+        <p>Units: cell lengths, wavelength and d spacings in Å; angles in degrees; reciprocal lengths, excitation errors, s₀, σ_C and r_cut in Å⁻¹. hkl and [uvw] coefficients are dimensionless. Gaussian weights, environmental sums and active scores are dimensionless. Defaults are exploratory, not a calibrated prediction of multiple scattering.</p>
+      </details>
+    </main>
+  </div>
+</div>
+
+<script id="diffraction-core">
+/* Pure numerical core. Columns of A and B are Cartesian vectors. No 2π. */
+(function (root) {
+  'use strict';
+  const add=(a,b)=>a.map((x,i)=>x+b[i]);
+  const mul=(a,t)=>a.map(x=>x*t);
+  const dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
+  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  const length=a=>Math.hypot(...a);
+  function unit(a) {
+    const m=Math.max(...a.map(Math.abs));
+    if (!(m>0) || !Number.isFinite(m)) throw Error('Beam direction must be finite and nonzero.');
+    const b=a.map(x=>x/m); return mul(b,1/length(b));
+  }
+  const matVec=(cols,c)=>cols[0].map((_,j)=>cols.reduce((s,v,i)=>s+v[j]*c[i],0));
+  const tol=r=>64*Number.EPSILON*Math.max(1,r);
+  const inside=(distance,r)=>distance<=r+tol(r);
+  const gaussian=(s,width)=>Math.exp(-((s/width)**2));
+  function cellMatrices(cell) {
+    if (cell.length!==6 || !cell.every(Number.isFinite)) throw Error('Cell fields must all be finite numbers.');
+    const [a,b,c,al,be,ga]=cell;
+    if ([a,b,c].some(x=>x<=0)) throw Error('Cell lengths must be positive.');
+    if ([al,be,ga].some(x=>x<=0 || x>=180)) throw Error('Cell angles must be strictly between 0° and 180°.');
+    const [ca,cb,cg]=[al,be,ga].map(x=>Math.cos(x*Math.PI/180));
+    const sg=Math.sin(ga*Math.PI/180);
+    const cy=(ca-cb*cg)/sg, z2=1-cb*cb-cy*cy;
+    if (!(z2>0)) throw Error('Cell angles do not define a positive-volume unit cell.');
+    const A=[[a,0,0],[b*cg,b*sg,0],[c*cb,c*cy,c*Math.sqrt(z2)]];
+    const volume=dot(A[0],cross(A[1],A[2]));
+    if (!(volume>0) || !Number.isFinite(volume)) throw Error('Cell volume must be finite and positive.');
+    const B=[mul(cross(A[1],A[2]),1/volume),mul(cross(A[2],A[0]),1/volume),mul(cross(A[0],A[1]),1/volume)];
+    if (!B.flat().every(Number.isFinite)) throw Error('Cell exceeds numerical precision.');
+    return {A,B,volume};
+  }
+  function orientation(A,uvw,tx=0,ty=0) {
+    // Normalize coefficients before A multiplication to preserve positive scale invariance.
+    const z=unit(matVec(A,unit(uvw)));
+    let x=add(A[0],mul(z,-dot(A[0],z)));
+    if (length(x)<1e-10*length(A[0])) x=add(A[1],mul(z,-dot(A[1],z)));
+    x=unit(x); const y=unit(cross(z,x));
+    const rx=tx*Math.PI/180, ry=ty*Math.PI/180;
+    const cx=Math.cos(rx),sx=Math.sin(rx),cy=Math.cos(ry),sy=Math.sin(ry);
+    // Components of R_y(ty) R_x(tx) in a fixed laboratory frame.
+    return {
+      x:matVec([x,y,z],[cy,sy*sx,sy*cx]),
+      y:matVec([x,y,z],[0,cx,-sx]),
+      beam:matVec([x,y,z],[-sy,cy*sx,cy*cx]),
+      base:{x,y,beam:z}
+    };
+  }
+  function geometry(B,hkl,basis,lambda) {
+    const g=matVec(B,hkl),q=length(g),gx=dot(g,basis.x),gy=dot(g,basis.y),gz=dot(g,basis.beam),K=1/lambda;
+    const outgoing=Math.hypot(gx,gy,K+gz);
+    // (|k0+g|²-K²)/(|k0+g|+K) is exactly the radial error, with less cancellation.
+    const s=(q*q+2*K*gz)/(outgoing+K),forward=K+gz>0;
+    if (![q,s].every(Number.isFinite)) throw Error('Reflection exceeds numerical precision.');
+    return {hkl:hkl.slice(),g,q,d:q?1/q:Infinity,s,forward,x:forward?gx/(K+gz):NaN,y:forward?gy/(K+gz):NaN};
+  }
+  function* latticeSteps(A,B,r,includeZero=true) {
+    // h_i = a_i · (Bh), hence |h_i| <= |a_i| r, even for oblique cells.
+    const bounds=A.map(a=>Math.ceil(length(a)*(r+tol(r))));
+    if (!bounds.every(Number.isSafeInteger)) throw Error('Enumeration bounds exceed exact integer precision.');
+    let visited=0;
+    for(let h=-bounds[0];h<=bounds[0];h++) for(let k=-bounds[1];k<=bounds[1];k++) for(let l=-bounds[2];l<=bounds[2];l++) {
+      if (++visited%4096===0) yield null; // Cooperative cancellation, never an index cap.
+      if (!includeZero && h===0 && k===0 && l===0) continue;
+      const hkl=[h,k,l],g=matVec(B,hkl),q=length(g);
+      if (inside(q,r)) yield {hkl,g,q};
+    }
+  }
+  async function collectLattice(A,B,r,includeZero,checkpoint) {
+    const points=[];
+    for(const point of latticeSteps(A,B,r,includeZero)) {
+      if(point) points.push(point); else if(checkpoint) await checkpoint();
+    }
+    return points;
+  }
+  function sum(values) { // Kahan summation; no contribution floor or normalization.
+    let total=0,c=0;
+    for(const value of values) {const y=value-c,t=total+y;c=(t-total)-y;total=t;}
+    return total;
+  }
+  function hiddenReasons(ref,display) {
+    const reasons=[];
+    if (ref.q<display.qMin-tol(display.qMin)) reasons.push('below lower display d*');
+    if (!inside(ref.q,display.qMax)) reasons.push('above upper display d*');
+    if (!inside(Math.abs(ref.s),display.sDisplay)) reasons.push('outside display excitation limit');
+    if (!ref.forward) reasons.push('not in forward projection (1/λ + g_Z ≤ 0)');
+    return reasons;
+  }
+  class Model {
+    constructor(cell) {Object.assign(this,cellMatrices(cell));this.cell=cell.slice();this.offsetKey=null;this.offsets=[];this.spheres=new Map();this.excitation=new Map();this.scores=new Map();}
+    async configure(cfg,checkpoint) {
+      const geometryKey=JSON.stringify([cfg.uvw,cfg.tiltX,cfg.tiltY,cfg.lambda]);
+      if (geometryKey!==this.geometryKey) {
+        this.basis=orientation(this.A,cfg.uvw,cfg.tiltX,cfg.tiltY);this.lambda=cfg.lambda;
+        this.geometryKey=geometryKey;this.excitation.clear();this.scores.clear();
+      }
+      const scoreKey=JSON.stringify([cfg.s0,cfg.sigmaC,cfg.rCut]);
+      if (scoreKey!==this.scoreKey) {this.scoreKey=scoreKey;this.scores.clear();}
+      if (this.offsetKey!==cfg.rCut) {
+        const offsets=await collectLattice(this.A,this.B,cfg.rCut,false,checkpoint);
+        this.offsets=offsets;this.offsetKey=cfg.rCut;
+      }
+      this.settings=cfg;
+    }
+    ref(hkl) {
+      const key=hkl.join(',');
+      if (!this.excitation.has(key)) this.excitation.set(key,geometry(this.B,hkl,this.basis,this.lambda));
+      return this.excitation.get(key);
+    }
+    async sphere(qMax,checkpoint) {
+      if(!this.spheres.has(qMax)) {
+        const points=await collectLattice(this.A,this.B,qMax,false,checkpoint);
+        this.spheres.clear();this.spheres.set(qMax,points);
+      }
+      return this.spheres.get(qMax);
+    }
+    async score(hkl,withRows=false,checkpoint) {
+      const key=hkl.join(','),cfg=this.settings,target=this.ref(hkl);
+      if(!withRows && this.scores.has(key)) return {...this.scores.get(key),active:cfg.includeTargetExcitation?this.scores.get(key).env*gaussian(target.s,cfg.s0):this.scores.get(key).env};
+      const rows=[],terms=[];let directContribution=0;
+      for(let i=0;i<this.offsets.length;i++) {
+        if(i && i%4096===0 && checkpoint) await checkpoint();
+        const offset=this.offsets[i],neighbor=hkl.map((x,j)=>x+offset.hkl[j]);
+        if(!neighbor.every(Number.isSafeInteger)) throw Error('Neighbor hkl exceeds exact integer precision.');
+        const ref=this.ref(neighbor),e=gaussian(ref.s,cfg.s0),coupling=gaussian(offset.q,cfg.sigmaC),contribution=e*coupling;
+        const direct=neighbor.every(x=>x===0);
+        terms.push(contribution);
+        if(direct) directContribution=contribution;
+        if(withRows) rows.push({hkl:neighbor,s:ref.s,distance:offset.q,e,coupling,contribution,direct});
+      }
+      const env=sum(terms),e=gaussian(target.s,cfg.s0),result={...target,e,env,count:this.offsets.length,directContribution,active:cfg.includeTargetExcitation?env*e:env};
+      this.scores.set(key,result);
+      return withRows?{...result,rows}:result;
+    }
+  }
+  // One authoritative configuration: HTML fields are populated from these values.
+  const DEFAULTS=Object.freeze({cell:Object.freeze([15.12,15.12,11.99,90,90,90]),uvw:Object.freeze([0.583271,0.621551,-0.522943]),mark:Object.freeze([10,-7,3]),lambda:0.020,tiltX:0,tiltY:0,qMin:0,qMax:2,sDisplay:0.008,s0:0.005,sigmaC:0.10,rCut:0.30,includeTargetExcitation:false,showDirectBeam:true,showHiddenMark:false,lockScale:false,colorMin:0,colorMax:1});
+  root.DiffractionCore={add,mul,dot,cross,length,unit,matVec,tol,inside,gaussian,cellMatrices,orientation,geometry,latticeSteps,collectLattice,sum,hiddenReasons,Model,DEFAULTS};
+})(globalThis);
+</script>
+
+<script id="diffraction-ui">
+(function(){
+  'use strict';
+  const C=window.DiffractionCore,D=C.DEFAULTS,$=id=>document.getElementById(id);
+  const canvas=$('vizCanvas'),ctx=canvas.getContext('2d');
+  const cellIDs=['aInput','bInput','cInput','alphaInput','betaInput','gammaInput'],uvwIDs=['uInput','vInput','wInput'],markIDs=['hInput','kInput','lInput'];
+  const fields={lambda:'lambdaInput',tiltX:'tiltXInput',tiltY:'tiltYInput',qMin:'qMinInput',qMax:'qMaxInput',sDisplay:'sDisplayInput',s0:'s0Input',sigmaC:'sigmaInput',rCut:'rCutInput',colorMin:'colorMinInput',colorMax:'colorMaxInput'};
+  const checks=['includeTargetExcitation','showDirectBeam','showHiddenMark','lockScale'];
+  const pairs=[['s0Slider','s0Input'],['sigmaSlider','sigmaInput'],['rCutSlider','rCutInput'],['tiltXSlider','tiltXInput'],['tiltYSlider','tiltYInput']];
+  const app={model:null,pattern:null,version:0,timer:null,busy:false,ready:false,lastError:null,width:1,height:1,dpr:1,scale:{min:0,max:1},view:{centerX:0,centerY:0,radius:0.045,fittedRadius:0.045},sort:{key:'contribution',direction:-1},pointers:new Map(),gesture:null};
+  const sleep=()=>new Promise(resolve=>setTimeout(resolve,0));
+  const fmt=(x,n=7)=>!Number.isFinite(x)?(x===Infinity?'∞':'n/a'):(x===0?'0':(Math.abs(x)<0.0001 || Math.abs(x)>=1e5)?x.toExponential(n-1):x.toPrecision(n));
+  const hklText=hkl=>'('+hkl.join(' ')+')';
+  const activeLabel=cfg=>cfg.includeTargetExcitation?'E(g) × R_env(g)':'R_env(g)';
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+  function numeric(id,label) {
+    const el=$(id),raw=el.value.trim(),value=Number(raw);
+    if(!raw || !Number.isFinite(value)) throw Error((label||id)+' must be a finite number.');
+    return value;
+  }
+  function readUI() {
+    const cfg={cell:cellIDs.map(id=>numeric(id,'Cell')),uvw:uvwIDs.map(id=>numeric(id,'[uvw]'))};
+    for(const [key,id] of Object.entries(fields)) if(key!=='colorMin' && key!=='colorMax') cfg[key]=numeric(id,key);
+    for(const key of checks) cfg[key]=$(key).checked;
+    C.cellMatrices(cfg.cell);C.orientation(C.cellMatrices(cfg.cell).A,cfg.uvw,cfg.tiltX,cfg.tiltY);
+    if(!(cfg.lambda>0) || !Number.isFinite(1/cfg.lambda)) throw Error('Wavelength must be positive and numerically representable.');
+    if(!(cfg.s0>0 && cfg.sigmaC>0)) throw Error('s₀ and σ_C must be positive.');
+    if(cfg.rCut<0) throw Error('r_cut must be nonnegative.');
+    if(cfg.qMin<0 || cfg.qMax<=0 || cfg.qMin>cfg.qMax) throw Error('Display bounds need 0 ≤ lower d* ≤ upper d*, with upper d* > 0.');
+    if(cfg.sDisplay<0) throw Error('Display excitation limit must be nonnegative.');
+    if(Math.abs(cfg.tiltX)>180 || Math.abs(cfg.tiltY)>180) throw Error('Each tilt must lie between −180° and 180°.');
+    const raw=markIDs.map(id=>$(id).value.trim());
+    if(raw.every(s=>s==='')) cfg.mark=null;
+    else {
+      if(raw.some(s=>s==='')) throw Error('Enter all three hkl indices, or clear all three.');
+      cfg.mark=raw.map(Number);
+      if(!cfg.mark.every(Number.isSafeInteger)) throw Error('hkl must be exact, safely representable integers.');
+      if(cfg.mark.every(x=>x===0)) throw Error('000 is the direct-beam reference. Inspect a nonzero target hkl.');
+    }
+    if(cfg.lockScale) {
+      cfg.colorMin=numeric('colorMinInput','Color minimum');cfg.colorMax=numeric('colorMaxInput','Color maximum');
+      if(cfg.colorMin<0 || cfg.colorMax<=cfg.colorMin) throw Error('Color bounds need 0 ≤ min < max.');
+    }
+    return cfg;
+  }
+  function syncPair(sliderID,inputID) {
+    const n=Number($(inputID).value),slider=$(sliderID);
+    if($(inputID).value.trim()!=='' && Number.isFinite(n)) {
+      if(n<Number(slider.min)) slider.min=String(n);
+      if(n>Number(slider.max)) slider.max=String(n);
+      // Number inputs accept arbitrary precision; sliders mirror it without step rounding.
+      slider.step='any';slider.value=String(n);
+    }
+  }
+  function writeDefaults() {
+    cellIDs.forEach((id,i)=>$(id).value=D.cell[i]);uvwIDs.forEach((id,i)=>$(id).value=D.uvw[i]);markIDs.forEach((id,i)=>$(id).value=D.mark[i]);
+    for(const [key,id] of Object.entries(fields)) $(id).value=D[key];
+    for(const key of checks) $(key).checked=D[key];
+    $('presetSelect').value='original';$('tableLimit').value='100';
+    app.sort={key:'contribution',direction:-1};pairs.forEach(p=>syncPair(...p));
+  }
+  function clearResults(message,error=false) {
+    app.pattern=null;app.ready=false;
+    $('status').textContent=message;$('status').classList.toggle('error',error);
+    $('markReadout').textContent=message;$('summaryReadout').textContent='No current calculation.';
+    $('contributionBody').replaceChildren();$('contributionSummary').textContent='No current contributions.';
+    $('orientationReadout').textContent='';$('resolutionReadout').textContent='';
+    $('colorTicks').textContent='';$('scaleReadout').textContent='No current color scale.';
+    $('plotTitle').textContent='Diffraction score';$('colorLabel').textContent='No current score';
+    draw();
+  }
+  function schedule(resetView=false,delay=75) {
+    clearTimeout(app.timer);const version=++app.version;app.busy=true;app.lastError=null;
+    clearResults('Updating…');
+    app.timer=setTimeout(()=>rebuild(version,resetView),delay);
+  }
+  async function rebuild(version,resetView) {
+    const checkpoint=async()=>{await sleep();if(version!==app.version) throw {cancelled:true};};
+    const started=performance.now();
+    try {
+      const cfg=readUI();
+      if(!app.model || JSON.stringify(cfg.cell)!==JSON.stringify(app.model.cell)) app.model=new C.Model(cfg.cell);
+      const model=app.model;
+      $('status').textContent='Enumerating complete neighborhoods…';
+      await model.configure(cfg,checkpoint);await checkpoint();
+      $('status').textContent='Filtering displayed targets…';
+      const points=await model.sphere(cfg.qMax,checkpoint),spots=[];
+      let visited=0;
+      for(const point of points) {
+        if(++visited%2048===0) await checkpoint();
+        const ref=model.ref(point.hkl);
+        if(C.hiddenReasons(ref,cfg).length===0) spots.push(ref);
+      }
+      $('status').textContent='Scoring '+spots.length+' displayed targets…';
+      const displaySpots=[];
+      for(let i=0;i<spots.length;i++) {
+        if(i%24===0) await checkpoint();
+        displaySpots.push(await model.score(spots[i].hkl,false,checkpoint));
+      }
+      const selected=cfg.mark?await model.score(cfg.mark,true,checkpoint):null;
+      await checkpoint();
+      const reasons=selected?C.hiddenReasons(selected,cfg):[];
+      app.pattern={cfg,displaySpots,selected,reasons,offsetCount:model.offsets.length,elapsed:performance.now()-started};
+      if(resetView) fitView();
+      setScale();updateReadouts();renderTable();draw();
+      app.busy=false;app.ready=true;app.lastError=null;
+      $('status').classList.remove('error');
+      $('status').textContent=(displaySpots.length?displaySpots.length+' displayed targets':'Empty display — no targets pass the filters')+' · '+model.offsets.length+' neighbors per target · '+Math.round(app.pattern.elapsed)+' ms';
+    } catch(error) {
+      if(version!==app.version || error.cancelled) return;
+      app.busy=false;app.lastError=error.message||String(error);clearResults('Invalid input / calculation unavailable: '+app.lastError,true);
+    }
+  }
+  function setScale() {
+    const p=app.pattern;if(!p) return;
+    if(p.cfg.lockScale) app.scale={min:p.cfg.colorMin,max:p.cfg.colorMax};
+    else {
+      let max=0;for(const spot of p.displaySpots) max=Math.max(max,spot.active);
+      app.scale={min:0,max:max>0?max:1};
+    }
+    $('colorMinInput').value=String(app.scale.min);$('colorMaxInput').value=String(app.scale.max);
+    $('colorTicks').innerHTML=[0,.25,.5,.75,1].map(t=>'<span>'+fmt(app.scale.min+t*(app.scale.max-app.scale.min),4)+'</span>').join('');
+    $('colorLabel').textContent=activeLabel(p.cfg)+' · dimensionless';
+    const clipped=p.displaySpots.filter(s=>s.active<app.scale.min || s.active>app.scale.max).length;
+    $('scaleReadout').textContent=p.cfg.lockScale?'Locked absolute scale; '+clipped+' displayed scores outside bounds use endpoint colors.':'Automatic rescaling: 0 to the maximum displayed absolute score; no percentiles.'+(p.displaySpots.some(s=>s.active>0)?'':' No positive displayed score: using 0–1 fallback.');
+  }
+  function updateReadouts() {
+    const p=app.pattern;if(!p) return;
+    const cfg=p.cfg,selection=p.selected;
+    $('plotTitle').textContent='Color: '+activeLabel(cfg);
+    $('resolutionReadout').textContent='d limits: '+fmt(1/cfg.qMax)+' Å ≤ d ≤ '+(cfg.qMin?fmt(1/cfg.qMin)+' Å':'∞')+'. d* = |g| = 1/d.';
+    const beam=app.model.basis.beam,coeffs=app.model.B.map(b=>C.dot(b,beam));
+    $('orientationReadout').textContent='Current beam in crystal Cartesian coordinates: ['+beam.map(x=>fmt(x,5)).join(', ')+']. Direct-coordinate coefficients ∝ ['+coeffs.map(x=>fmt(x,5)).join(', ')+']. Tilt order: lab X then lab Y.';
+    $('summaryReadout').innerHTML='<div><strong>Displayed</strong>: '+p.displaySpots.length+' nonzero targets</div><div><strong>Environment</strong>: '+p.offsetCount+' complete offsets per target</div><div><strong>Active color</strong>: '+activeLabel(cfg)+'</div><div><strong>000</strong>: always included when |g| ≤ r_cut</div>';
+    if(!selection) {$('markReadout').textContent='No selected hkl. Click a spot or enter a nonzero integer hkl.';return;}
+    const s=selection;
+    const directEligible=C.inside(s.q,cfg.rCut);
+    const metrics=[['hkl',hklText(s.hkl)],['|g|',fmt(s.q)+' Å⁻¹'],['d',fmt(s.d)+' Å'],['s_g',fmt(s.s)+' Å⁻¹'],['E(g)',fmt(s.e)],['R_env(g)',fmt(s.env)],['Active '+activeLabel(cfg),fmt(s.active)],['Neighbors',s.count],['000 contribution',fmt(s.directContribution)+(directEligible?' (included)':' (outside cutoff)')]];
+    $('markReadout').innerHTML='<div class="metrics">'+metrics.map(([label,value])=>'<div><strong>'+label+'</strong><br>'+value+'</div>').join('')+'</div><p class="hint">'+(p.reasons.length?'Hidden from normal display: '+p.reasons.join('; ')+'. '+(cfg.showHiddenMark&&s.forward?'Optional dashed diamond is a projection reference only.':'Its full score is still calculated.'):'Displayed target; selection ring is a reference overlay.')+'</p>';
+  }
+  function renderTable() {
+    const s=app.pattern&&app.pattern.selected;
+    if(!s) {$('contributionBody').replaceChildren();$('contributionSummary').textContent='Select a nonzero reflection to inspect its complete neighborhood.';return;}
+    const {key,direction}=app.sort,all=s.rows.slice();
+    all.sort((a,b)=>{
+      if(key==='hkl') {for(let i=0;i<3;i++) if(a.hkl[i]!==b.hkl[i]) return direction*(a.hkl[i]-b.hkl[i]);return 0;}
+      return direction*(a[key]-b[key]) || a.hkl[0]-b.hkl[0] || a.hkl[1]-b.hkl[1] || a.hkl[2]-b.hkl[2];
+    });
+    const limit=$('tableLimit').value==='all'?all.length:Number($('tableLimit').value);
+    const shown=all.slice(0,limit),beam=all.find(r=>r.direct);
+    if(beam && !shown.includes(beam)) {shown.push(beam);shown.sort((a,b)=>all.indexOf(a)-all.indexOf(b));}
+    const shownSet=new Set(shown),omitted=C.sum(all.filter(r=>!shownSet.has(r)).map(r=>r.contribution)),subtotal=C.sum(shown.map(r=>r.contribution));
+    $('contributionBody').innerHTML=shown.map(r=>'<tr'+(r.direct?' class="direct"':'')+'><td>'+hklText(r.hkl)+(r.direct?' · direct beam':'')+'</td><td>'+fmt(r.s,10)+'</td><td>'+fmt(r.distance,10)+'</td><td>'+fmt(r.e,10)+'</td><td>'+fmt(r.coupling,10)+'</td><td>'+fmt(r.contribution,10)+'</td></tr>').join('');
+    $('contributionSummary').textContent='Showing '+shown.length+' / '+all.length+' neighbors, sorted by '+key+(direction<0?' descending':' ascending')+'. Eligible 000 is always shown. Shown sum = '+fmt(subtotal,12)+'; omitted contribution sum = '+fmt(omitted,12)+'; complete sum R_env = '+fmt(s.env,12)+'. Values in rows are rounded; sums use full precision. All weights and contributions are dimensionless.';
+    document.querySelectorAll('[data-sort]').forEach(button=>{
+      const current=button.dataset.sort===key;
+      button.parentElement.setAttribute('aria-sort',current?(direction<0?'descending':'ascending'):'none');
+      button.textContent=button.textContent.replace(/ [↕↓↑]$/,'')+' '+(current?(direction<0?'↓':'↑'):'↕');
+    });
+  }
+  function fitView() {
+    if(!app.pattern) return;
+    let radius=0;
+    for(const s of app.pattern.displaySpots) radius=Math.max(radius,Math.abs(s.x),Math.abs(s.y));
+    if(!(radius>0)) radius=Math.max(.01,app.pattern.cfg.qMax*app.pattern.cfg.lambda);
+    app.view={centerX:0,centerY:0,radius:radius*1.15,fittedRadius:radius*1.15};
+  }
+  function screenScale(){return Math.min(app.width,app.height)*.40/app.view.radius;}
+  function worldToScreen(x,y){const z=screenScale();return {x:app.width*.5+(x-app.view.centerX)*z,y:app.height*.5-(y-app.view.centerY)*z};}
+  function screenToWorld(x,y){const z=screenScale();return {x:app.view.centerX+(x-app.width*.5)/z,y:app.view.centerY-(y-app.height*.5)/z};}
+  function color(t){
+    const stops=[[0,[43,79,107]],[.36,[32,106,93]],[.68,[217,119,6]],[1,[185,28,28]]];t=clamp(t,0,1);
+    let i=0;while(i<2 && t>stops[i+1][0]) i++;
+    const [a,ac]=stops[i],[b,bc]=stops[i+1],f=(t-a)/(b-a);
+    return 'rgb('+ac.map((x,j)=>Math.round(x+f*(bc[j]-x))).join(',')+')';
+  }
+  function niceStep(raw){const p=10**Math.floor(Math.log10(Math.max(raw,1e-15))),b=raw/p;return (b<1.5?1:b<3?2:b<7?5:10)*p;}
+  function draw() {
+    const w=app.width,h=app.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#faf8f2';ctx.fillRect(0,0,w,h);
+    const low=screenToWorld(0,h),high=screenToWorld(w,0),step=niceStep((high.x-low.x)/6);
+    ctx.font='11px system-ui';ctx.lineWidth=1;ctx.textAlign='center';
+    for(let x=Math.ceil(low.x/step)*step,n=0;x<=high.x && n<50;x+=step,n++) {
+      const p=worldToScreen(x,0);ctx.strokeStyle='#e4dac9';ctx.beginPath();ctx.moveTo(p.x,0);ctx.lineTo(p.x,h);ctx.stroke();
+      ctx.fillStyle='#665948';ctx.fillText(fmt(Math.abs(x)<step*1e-10?0:x,3),p.x,h-28);
+    }
+    ctx.textAlign='left';
+    for(let y=Math.ceil(low.y/step)*step,n=0;y<=high.y && n<50;y+=step,n++) {
+      const p=worldToScreen(0,y);ctx.strokeStyle='#e4dac9';ctx.beginPath();ctx.moveTo(0,p.y);ctx.lineTo(w,p.y);ctx.stroke();ctx.fillStyle='#665948';ctx.fillText(fmt(Math.abs(y)<step*1e-10?0:y,3),5,p.y-3);
+    }
+    ctx.fillStyle='#473d30';ctx.textAlign='right';ctx.fillText('X = g_X / (1/λ + g_Z) · dimensionless',w-8,h-8);
+    ctx.save();ctx.translate(w-8,18);ctx.rotate(-Math.PI/2);ctx.textAlign='right';ctx.fillText('Y = g_Y / (1/λ + g_Z) · dimensionless',0,0);ctx.restore();
+    const p=app.pattern;
+    if(!p) {ctx.fillStyle='#665948';ctx.textAlign='center';ctx.fillText('No current calculation — see status',w/2,h/2);return;}
+    for(const spot of p.displaySpots) {
+      const at=worldToScreen(spot.x,spot.y);if(at.x<0 || at.x>w || at.y<0 || at.y>h) continue;
+      ctx.fillStyle=color((spot.active-app.scale.min)/(app.scale.max-app.scale.min));ctx.beginPath();ctx.arc(at.x,at.y,3.4,0,Math.PI*2);ctx.fill();
+    }
+    if(p.cfg.showDirectBeam) {
+      const at=worldToScreen(0,0);ctx.strokeStyle='#206a5d';ctx.fillStyle='#fffdf8';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(at.x,at.y,7,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(at.x-10,at.y);ctx.lineTo(at.x+10,at.y);ctx.moveTo(at.x,at.y-10);ctx.lineTo(at.x,at.y+10);ctx.stroke();ctx.textAlign='left';ctx.font='12px system-ui';ctx.fillStyle='#206a5d';ctx.fillText('000',at.x+11,at.y+15);
+    }
+    const s=p.selected,hidden=p.reasons.length>0;
+    if(s && s.forward && (!hidden || p.cfg.showHiddenMark)) {
+      const at=worldToScreen(s.x,s.y);ctx.save();ctx.strokeStyle='#a32020';ctx.fillStyle='#a32020';ctx.lineWidth=2;ctx.beginPath();
+      if(hidden) {ctx.setLineDash([4,3]);ctx.moveTo(at.x,at.y-12);ctx.lineTo(at.x+12,at.y);ctx.lineTo(at.x,at.y+12);ctx.lineTo(at.x-12,at.y);ctx.closePath();}
+      else ctx.arc(at.x,at.y,10,0,Math.PI*2);
+      ctx.stroke();ctx.setLineDash([]);ctx.textAlign='left';ctx.font='13px system-ui';ctx.fillText(hklText(s.hkl)+(hidden?' · hidden projection':''),at.x+13,at.y-12);ctx.restore();
+    }
+    if(!p.displaySpots.length) {ctx.textAlign='center';ctx.fillStyle='#665948';ctx.font='14px system-ui';ctx.fillText('No targets pass the display filters',w/2,42);}
+  }
+  function resize() {
+    const r=canvas.getBoundingClientRect();app.width=Math.max(1,r.width);app.height=Math.max(1,r.height);app.dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.round(app.width*app.dpr);canvas.height=Math.round(app.height*app.dpr);ctx.setTransform(app.dpr,0,0,app.dpr,0,0);draw();
+  }
+  function point(e){const r=canvas.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};}
+  function zoomAt(at,factor){const before=screenToWorld(at.x,at.y);app.view.radius=clamp(app.view.radius*factor,app.view.fittedRadius*.02,app.view.fittedRadius*50);const after=screenToWorld(at.x,at.y);app.view.centerX+=before.x-after.x;app.view.centerY+=before.y-after.y;}
+  function selectAt(at) {
+    if(!app.pattern) return;let best=null,d2=14*14;
+    for(const spot of app.pattern.displaySpots) {const q=worldToScreen(spot.x,spot.y),d=(q.x-at.x)**2+(q.y-at.y)**2;if(d<d2) {d2=d;best=spot;}}
+    if(best) {markIDs.forEach((id,i)=>$(id).value=best.hkl[i]);schedule(false,0);}
+  }
+  function bindCanvas() {
+    canvas.addEventListener('pointerdown',e=>{
+      canvas.setPointerCapture(e.pointerId);const at=point(e);app.pointers.set(e.pointerId,at);
+      if(app.pointers.size===1) app.gesture={start:at,last:at,moved:false,pinching:false};
+      if(app.pointers.size>=2) {app.gesture.moved=true;app.gesture.pinching=true;const a=[...app.pointers.values()];app.gesture.distance=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);}
+    });
+    canvas.addEventListener('pointermove',e=>{
+      if(!app.pointers.has(e.pointerId)) return;
+      const at=point(e);app.pointers.set(e.pointerId,at);const gesture=app.gesture;
+      if(app.pointers.size>=2) {
+        const a=[...app.pointers.values()],d=Math.max(1,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),mid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};
+        zoomAt(mid,gesture.distance/d);gesture.distance=d;gesture.moved=true;
+      } else {
+        if(Math.hypot(at.x-gesture.start.x,at.y-gesture.start.y)>3) gesture.moved=true;
+        if(gesture.moved && !gesture.pinching) {const scale=screenScale();app.view.centerX-=(at.x-gesture.last.x)/scale;app.view.centerY+=(at.y-gesture.last.y)/scale;}
+        gesture.last=at;
+      }
+      draw();
+    });
+    function end(e,cancelled=false){
+      if(!app.pointers.has(e.pointerId)) return;
+      if(!cancelled && app.gesture && !app.gesture.moved) selectAt(point(e));
+      app.pointers.delete(e.pointerId);if(app.pointers.size===0) app.gesture=null;
+    }
+    canvas.addEventListener('pointerup',e=>end(e));canvas.addEventListener('pointercancel',e=>end(e,true));
+    canvas.addEventListener('wheel',e=>{e.preventDefault();zoomAt(point(e),Math.exp(clamp(e.deltaY*.001,-2,2)));draw();},{passive:false});
+    canvas.addEventListener('dblclick',()=>{fitView();draw();});
+  }
+  function bindUI() {
+    pairs.forEach(([slider,input])=>{
+      $(slider).addEventListener('input',()=>{$(input).value=$(slider).value;schedule();});
+      $(input).addEventListener('input',()=>{syncPair(slider,input);schedule();});
+    });
+    const pairedNumbers=new Set(pairs.map(p=>p[1]));
+    [...cellIDs,...uvwIDs,...markIDs,...Object.values(fields)].forEach(id=>{
+      if(pairedNumbers.has(id)) return;
+      $(id).addEventListener('input',()=>{if(id==='colorMinInput' || id==='colorMaxInput') $('lockScale').checked=true;schedule();});
+    });
+    checks.forEach(id=>$(id).addEventListener('change',()=>schedule()));
+    $('applyInputs').addEventListener('click',()=>schedule(false,0));
+    document.querySelectorAll('input[type=number]').forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter') schedule(false,0);}));
+    $('clearMark').addEventListener('click',()=>{markIDs.forEach(id=>$(id).value='');schedule(false,0);});
+    $('zeroTilts').addEventListener('click',()=>{$('tiltXInput').value=0;$('tiltYInput').value=0;pairs.forEach(p=>syncPair(...p));schedule(false,0);});
+    $('threeSigma').addEventListener('click',()=>{try{$('rCutInput').value=3*numeric('sigmaInput','σ_C');syncPair('rCutSlider','rCutInput');schedule(false,0);}catch(e){++app.version;app.busy=false;clearResults(e.message,true);}});
+    $('resetRisk').addEventListener('click',()=>{['s0','sigmaC','rCut'].forEach(key=>$(fields[key]).value=D[key]);$('includeTargetExcitation').checked=false;pairs.forEach(p=>syncPair(...p));schedule(false,0);});
+    $('resetAll').addEventListener('click',()=>{writeDefaults();schedule(true,0);});
+    $('applyPreset').addEventListener('click',()=>{
+      if($('presetSelect').value==='original') {
+        cellIDs.forEach((id,i)=>$(id).value=D.cell[i]);uvwIDs.forEach((id,i)=>$(id).value=D.uvw[i]);markIDs.forEach((id,i)=>$(id).value=D.mark[i]);$('lambdaInput').value=D.lambda;
+        $('tiltXInput').value=0;$('tiltYInput').value=0;pairs.forEach(p=>syncPair(...p));
+      } else {
+        const cell=[11.78802,11.78802,11.78802,90,90,90];cellIDs.forEach((id,i)=>$(id).value=cell[i]);$('lambdaInput').value=.01969;$('qMaxInput').value=2.25;
+      }
+      schedule(false,0);
+    });
+    $('resetView').addEventListener('click',()=>{fitView();draw();});
+    $('centerMark').addEventListener('click',()=>{const s=app.pattern&&app.pattern.selected;if(s && s.forward) {app.view.centerX=s.x;app.view.centerY=s.y;draw();}});
+    $('tableLimit').addEventListener('change',renderTable);
+    document.querySelectorAll('[data-sort]').forEach(button=>button.addEventListener('click',()=>{app.sort.direction=app.sort.key===button.dataset.sort?-app.sort.direction:-1;app.sort.key=button.dataset.sort;renderTable();}));
+  }
+  // Read-only diagnostic surface supports reproducible numerical and browser validation.
+  window.DiffractionExplorer={get state(){return app;},worldToScreen,screenToWorld,readUI};
+  writeDefaults();bindUI();bindCanvas();new ResizeObserver(resize).observe(canvas);resize();schedule(true,0);
+})();
+</script>
+
+</body></html>

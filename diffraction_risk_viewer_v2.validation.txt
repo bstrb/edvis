@@ -1,0 +1,145 @@
+DIFFRACTION RISK EXPLORER — VALIDATION REPORT
+Date: 2026-11-11 (Europe/Stockholm)
+HTML: /Users/xiaodong/Desktop/edvis/diffraction_risk_viewer_v2.html
+HTML SHA-256: a7bc1a4fad59b05aa976de99c5e12b0a5fcc72a72bd1f65a4b273698d12b72e2
+Original file: /Users/xiaodong/Desktop/edvis/diffraction_risk_viewer.html
+Original SHA-256, before and after: 2266cc91bf8adb9b3922c75883397efb7644bab95e3b8a7b7a14df09a12f2ed7
+Original unchanged: YES. No existing version was overwritten.
+The separate LTA statistical study was neither modified nor rerun.
+
+RESULT: 73 passed, 0 failed (24 numerical; 49 actual-browser checks).
+Browser: Chrome/157.0.8103.50. Loaded via file://, without a server or external script dependencies.
+Desktop viewport: 1480 × 1100; mobile viewport: 390 × 844. Desktop and mobile screenshots inspected.
+Observed startup computation: 917.3 ms on this machine.
+
+SCIENTIFIC CORRECTIONS
+The old environment omitted 000, limited neighbors to a resolution sphere and a zone slab,
+and dropped neighbors exactly on the cutoff. It also silently capped integer indices.
+The new environment enumerates every nonzero integer offset Δhkl with |BΔhkl| ≤ r_cut.
+Each neighbor is target hkl + Δhkl, independently of display filters and viewport.
+000 is therefore included whenever eligible. Its contribution is shown separately.
+Boundary tolerance is 64 machine epsilons × max(1, r_cut) Å⁻¹.
+No structure factors, intensity proxies, normalized sum, contribution floor, or extra score terms.
+B = A⁻ᵀ (no 2π); radial excitation is |k0 + Bh| − |k0|, evaluated in a stable rationalized form.
+Direct-coordinate [uvw] maps through A before normalization. Nonorthogonal cells and tilted
+orientations were checked explicitly; positive scaling of [uvw] leaves scores unchanged.
+One configuration supplies startup and reset defaults: s0=0.005, sigma_C=0.10, r_cut=0.30 Å⁻¹;
+optional multiplication by E(g) is OFF. These are exploratory, uncalibrated parameters.
+
+REFLECTION VISIBILITY AND INTERACTION
+Normal markers are equal-size nonzero targets meeting lower/upper |g| bounds,
+|s_g| ≤ s_display, and 1/lambda + g_Z > 0. Defaults: |g| ≤ 2 and |s_g| ≤ 0.008 Å⁻¹.
+Bounds are editable; d=1/|g| limits are shown. Approximate LTA sets upper |g|=2.25 Å⁻¹.
+Synthetic minimum intensity, resolution attenuation, and percentile normalization were removed.
+Any safely representable nonzero integer hkl can be inspected outside these filters.
+Hidden reasons are displayed. Optional hidden projections use dashed diamonds and explicit labels.
+The 000 reference can be hidden without affecting scoring. Neighbor tables always show eligible 000.
+Tables can be sorted and expanded to all rows. Any omitted contribution sum is reported.
+Automatic color scaling uses 0 to maximum displayed absolute score and is explicitly labeled.
+A locked scale retains numeric limits during orientation and display changes.
+Lab X/Y crystal tilts use a fixed detector frame; canvas gestures change only the viewport.
+Original example restores original cell, zero-tilt orientation, marked hkl, and wavelength.
+Approximate LTA sets only its declared cell, wavelength and upper display bound; other fields persist.
+Invalid or pending calculations clear current results, preventing stale scores from appearing current.
+
+INDEPENDENT NUMERICAL REFERENCE
+Reference constructs/inverts A with scalar cofactors, enumerates absolute neighbor hkl in
+a larger fixed cube, and evaluates full 3D distances and direct radial norms independently
+of the optimized offset enumeration and excitation cache. Tilted references rotate each
+reciprocal vector explicitly about fixed lab X then Y.
+Cubic case: cell [3,3,3,90,90,90], uvw [0.4,0.7,-0.2], target [1,-1,0], r_cut 0.72.
+Nonorthogonal: cell [3,4,5,70,82,65], same uvw/target, r_cut 0.65.
+Both use lambda=0.4 Å, s0=0.12 and sigma_C=0.31 Å⁻¹; tilted cases use X=0.7°, Y=−1.1°.
+  cubic optimized sum vs independent absolute-index brute force:
+    optimized=0.86462451793287709; reference=0.86462451793287654; |difference|=5.55e-16
+  cubic tilted optimized score vs independently rotated brute force:
+    optimized=0.84404523915770668; reference=0.84404523915770735; |difference|=6.66e-16
+  nonorthogonal optimized sum vs independent absolute-index brute force:
+    optimized=2.2471716649827305; reference=2.2471716649827318; |difference|=1.33e-15
+  nonorthogonal tilted optimized score vs independently rotated brute force:
+    optimized=2.2681223937156001; reference=2.2681223937156005; |difference|=4.44e-16
+
+INITIAL ORIGINAL-EXAMPLE READOUT
+562 displayed targets; 322 complete neighbors per target.
+Selected (10 −7 3): |g|=0.8451962893644093 Å⁻¹; d=1.1831571110564194 Å;
+s_g=0.001074944997044895 Å⁻¹; E(g)=0.9548316183918946;
+R_env=active score=1.1981711355449127. 000 lies outside this target’s cutoff.
+
+NUMERICAL CHECKS
+PASS  Gaussian E(s0) = exp(-1), without factor 1/2
+PASS  cubic optimized sum vs independent absolute-index brute force
+PASS  cubic tilted optimized score vs independently rotated brute force
+PASS  cubic complete contributions reproduce R_env
+PASS  cubic direct-coordinate beam and reciprocal duality
+PASS  cubic positive [uvw] scaling preserves scores
+PASS  cubic optional weighting affects only final score
+PASS  cubic display filters preserve target score
+PASS  cubic neighbors beyond display sphere included
+PASS  nonorthogonal optimized sum vs independent absolute-index brute force
+PASS  nonorthogonal tilted optimized score vs independently rotated brute force
+PASS  nonorthogonal complete contributions reproduce R_env
+PASS  nonorthogonal direct-coordinate beam and reciprocal duality
+PASS  nonorthogonal positive [uvw] scaling preserves scores
+PASS  nonorthogonal optional weighting affects only final score
+PASS  nonorthogonal display filters preserve target score
+PASS  nonorthogonal neighbors beyond display sphere included
+PASS  Inclusive cutoff, exact six axial neighbors, self excluded
+PASS  000 explicitly present, E(000)=1, exact direct-beam contribution
+PASS  Zero cutoff produces zero neighbors and score
+PASS  No index cap: offsets reach ±100
+PASS  Stable orthonormal laboratory basis under tilts
+PASS  Exact rationalized radial error agrees with direct radial norm
+PASS  Authoritative exploratory defaults, target weighting OFF
+
+ACTUAL BROWSER CHECKS
+PASS  Standalone file startup, authoritative defaults and unweighted score
+PASS  Contribution table rendered and complete rows reproduce R_env
+PASS  Actual canvas click selects a displayed reflection
+PASS  Wheel zoom and pointer pan preserve scores without recomputation
+PASS  Resolution/excitation display filters preserve retained target score
+PASS  Weighting toggle changes only final score
+PASS  Reset score restores exploratory defaults and weighting OFF
+PASS  Score slider updates numeric input and current score
+PASS  Numeric inputs synchronize all score sliders exactly
+PASS  Independent cutoff button sets 3 sigma
+PASS  Cutoff remains independently editable
+PASS  Startup and reset-all agree numerically
+PASS  Continuous tilts update score while locked color scale stays fixed
+PASS  Tilt numeric inputs synchronize sliders
+PASS  Zero tilt restores original score with fixed detector basis
+PASS  Automatic rescaling explicitly labeled
+PASS  Editing absolute color bounds locks scale
+PASS  Approximate LTA preset fields and other settings preserved
+PASS  Original preset restores original cell, zero-tilt orientation, hkl and wavelength
+PASS  Target beyond original index cap remains inspectable
+PASS  Backward target scored and hidden with forward-projection reason
+PASS  Any nonzero target outside filters remains inspectable, empty display valid
+PASS  Hidden projection explicitly labeled
+PASS  Eligible 000 has a distinct contribution row
+PASS  Hiding 000 reference leaves its contribution and score unchanged
+PASS  Contribution table sorts both ways
+PASS  All neighbor rows can be inspected
+PASS  Omitted contribution sum explicitly reported
+PASS  Invalid positive cell lengths clears current results
+PASS  Invalid nonphysical cell angles clears current results
+PASS  Invalid zero wavelength clears current results
+PASS  Invalid zero direction clears current results
+PASS  Invalid fractional hkl clears current results
+PASS  Invalid 000 target clears current results
+PASS  Invalid reversed resolution bounds clears current results
+PASS  Invalid zero excitation width clears current results
+PASS  Invalid negative coupling width clears current results
+PASS  Invalid negative cutoff clears current results
+PASS  Invalid negative display excitation clears current results
+PASS  Invalid out-of-range tilt clears current results
+PASS  Invalid invalid color range clears current results
+PASS  Invalid blank numeric field clears current results
+PASS  UI [uvw] positive scaling preserves orientation and scores
+PASS  Nonorthogonal cell works in browser
+PASS  Large enumeration yields while controls remain available
+PASS  Rapid changes cancel obsolete calculation and show current settings
+PASS  Responsive mobile layout has no horizontal page overflow
+PASS  Touch pinch zoom preserves selected score
+PASS  No uncaught browser exceptions
+
+Machine-readable details: /Users/xiaodong/Desktop/edvis/diffraction_risk_viewer_v2.validation.json
