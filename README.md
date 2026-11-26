@@ -1,6 +1,9 @@
 # edvis
 Visualizations related to electron diffraction
 
+Open [index.html](index.html) for the application directory, or visit
+https://bstrb.github.io/edvis/ when the site is published.
+
 The html-apps can be reached at
 
 https://bstrb.github.io/edvis/ewald-viewer.html

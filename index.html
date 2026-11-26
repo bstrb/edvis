@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive electron diffraction visualizations and reflection viewers.">
+  <title>Electron Diffraction Visualizations</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --text: #2c2419;
+      --muted: #665948;
+      --border: #cdbd9f;
+      --accent: #206a5d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, rgba(161, 77, 42, 0.12), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(32, 106, 93, 0.14), transparent 28%),
+        #f5f1e8;
+      min-height: 100vh;
+    }
+
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 24px 64px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #a14d2a;
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      line-height: 1.05;
+    }
+
+    .intro {
+      max-width: 660px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    section { margin-top: 36px; }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.35rem;
+    }
+
+    .apps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+      gap: 12px;
+    }
+
+    .app {
+      display: block;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fffdf8;
+      box-shadow: 0 8px 24px rgba(54, 37, 15, 0.06);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app:hover {
+      border-color: var(--accent);
+      background: #f9f8ef;
+    }
+
+    .app:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .app strong {
+      display: block;
+      color: var(--accent);
+      font-size: 1.08rem;
+    }
+
+    .app span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 32px 16px 48px; }
+      section { margin-top: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Interactive visualizations</p>
+      <h1>Electron Diffraction</h1>
+      <p class="intro">Explore diffraction geometry, rocking curves, and reflection data. Select an application to open it.</p>
+    </header>
+
+    <section aria-labelledby="rocking-title">
+      <h2 id="rocking-title">Rocking-curve simulations</h2>
+      <div class="apps">
+        <a class="app" href="kindyn-rc-resolution-multi.html">
+          <strong>Compare multiple resolutions</strong>
+          <span>Compare kinematical and dynamical curves across reflection resolutions.</span>
+        </a>
+        <a class="app" href="kindyn-rc-resolution.html">
+          <strong>Resolution-dependent scattering</strong>
+          <span>Explore the effect of scattering factors on a single reflection.</span>
+        </a>
+        <a class="app" href="kindyn-rc.html">
+          <strong>Kinematical and dynamical curves</strong>
+          <span>The original rocking-curve comparison with thickness and absorption controls.</span>
+        </a>
+      </div>
+    </section>
+
+    <section aria-labelledby="geometry-title">
+      <h2 id="geometry-title">Geometry and diffraction</h2>
+      <div class="apps">
+        <a class="app" href="ewald-viewer.html">
+          <strong>Ewald sphere viewer</strong>
+          <span>Explore the reciprocal lattice, Ewald sphere, and detector projection.</span>
+        </a>
+        <a class="app" href="diffraction_risk_viewer_v2.html">
+          <strong>Diffraction risk explorer · v2</strong>
+          <span>Explore complete local reciprocal-lattice environments.</span>
+        </a>
+        <a class="app" href="diffraction_risk_viewer.html">
+          <strong>Diffraction risk explorer · original</strong>
+          <span>Open the original diffraction risk visualization.</span>
+        </a>
+        <a class="app" href="rocking_sphere.html">
+          <strong>Surface-pivot rocking sphere</strong>
+          <span>Visualize the motion of a sphere rocking about a fixed surface point.</span>
+        </a>
+      </div>
+    </section>
+
+    <section aria-labelledby="data-title">
+      <h2 id="data-title">Reflection data</h2>
+      <div class="apps">
+        <a class="app" href="iobs_curve_viewer.html">
+          <strong>Iobs curve viewer</strong>
+          <span>Browse observed intensity curves for selected reflections.</span>
+        </a>
+        <a class="app" href="lta-rc-neg-sres.html">
+          <strong>Negative T1-SRES rocking curves</strong>
+          <span>Browse ranked reflections and compare four thickness datasets.</span>
+        </a>
+        <a class="app" href="lta-t1-sres-vs-frame.html">
+          <strong>SRES vs frame</strong>
+          <span>Explore reflection SRES values across frames.</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
