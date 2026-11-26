@@ -6,6 +6,9 @@ https://bstrb.github.io/edvis/ when the site is published.
 
 The html-apps can be reached at
 
+https://bstrb.github.io/edvis/index.html
+
+
 https://bstrb.github.io/edvis/ewald-viewer.html
 https://bstrb.github.io/edvis/diffraction_risk_viewer.html
 https://bstrb.github.io/edvis/iobs_curve_viewer.html
